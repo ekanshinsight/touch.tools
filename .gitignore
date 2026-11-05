@@ -1,0 +1,29 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# local config
+config.json
+
+# runtime output
+logs/
+reports/
+_traces*
+*.log
+
+# backups and scratch
+*.bak
+*.bak-*
+_*.ps1
+_patch*.py
+__pycache__/
+*.pyc
+
+# python env
+.venv/
+venv/
+
+# os
+.DS_Store
+Thumbs.db
