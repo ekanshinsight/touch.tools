@@ -1,0 +1,7 @@
+{
+  "host": "0.0.0.0",
+  "http_port": 8890,
+  "ws_port": 8891,
+  "pin": "",
+  "launch": { "notepad": "notepad.exe" }
+}

@@ -1,0 +1,6 @@
+pynput>=1.7.6
+websockets>=12.0
+qrcode>=7.4
+# R13: PC→tablet screen streaming (/api/screen) — capture + JPEG encode
+mss>=10.0
+Pillow>=10.0

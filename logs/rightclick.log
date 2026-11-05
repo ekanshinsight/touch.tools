@@ -1,0 +1,132 @@
+[11:25:27.651] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:27.652] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:29.652] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:29.653] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:31.654] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:31.654] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:33.655] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:33.656] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:35.658] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:35.658] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:37.660] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:37.660] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:39.661] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:39.662] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:41.663] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:41.663] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:43.664] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:43.665] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:45.665] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:45.666] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:47.667] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:47.667] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:49.669] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:49.669] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:51.670] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:51.671] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:53.672] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:53.672] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:55.674] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:55.674] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:57.675] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:57.676] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:25:59.677] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:25:59.678] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:01.679] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:01.679] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:03.681] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:03.682] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:05.682] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:05.683] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:07.684] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:07.684] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:09.685] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:09.686] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:11.687] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:11.687] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:13.688] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:13.688] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:15.690] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:15.690] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:17.691] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:17.692] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:19.693] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:19.693] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:21.694] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:21.695] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:23.696] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:23.697] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:25.697] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:25.698] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:27.698] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:27.699] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:29.700] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:29.700] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:31.701] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:31.702] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:33.702] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:33.703] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:35.704] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:35.705] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:37.706] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:37.706] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:39.707] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:39.708] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:41.709] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:41.709] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:43.711] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:43.711] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:45.504] RC-INBOUND click-msg server.py:client_handler button=right action=down
+[11:26:45.504] RC-SYNTH do_click-right server.py:do_click right/down
+[11:26:45.549] RC-INBOUND click-msg server.py:client_handler button=right action=up
+[11:26:45.549] RC-SYNTH do_click-right server.py:do_click right/up
+[11:26:45.712] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:45.713] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:47.713] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:47.714] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:49.715] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:49.716] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:51.717] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:51.717] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:53.718] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:53.718] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:55.719] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:55.720] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:57.722] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:57.722] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:26:59.723] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:26:59.724] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:27:01.725] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:27:01.725] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:27:03.726] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:27:03.726] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:27:05.727] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:27:05.728] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:27:07.729] RC-CANDIDATE keepalive-fire server.py:cursor_keepalive clients=1 viewers=0
+[11:27:07.729] RC-CANDIDATE keepalive-nudge server.py:_force_cursor_visible held_mouse=set()
+[11:32:10.304] RC-INBOUND click-msg server.py:client_handler button=right action=down
+[11:32:10.305] RC-SYNTH do_click-right server.py:do_click right/down
+[11:32:10.344] RC-INBOUND click-msg server.py:client_handler button=right action=up
+[11:32:10.344] RC-SYNTH do_click-right server.py:do_click right/up
+[11:36:08.834] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=1
+[11:37:27.432] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=1
+[11:40:20.655] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=1
+[11:40:24.342] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=1
+[11:42:21.352] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=2
+[11:44:06.796] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=1
+[11:48:34.319] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=2
+[11:48:45.507] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=2
+[11:49:18.565] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=1
+[11:49:21.752] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=1
+[11:52:22.586] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=1
+[11:52:48.696] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=2
+[11:53:13.804] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=2
+[11:53:50.555] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=2
+[11:54:20.166] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=2
+[11:54:23.688] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=2
+[11:55:03.903] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=2
+[11:55:07.414] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=2
+[11:55:27.683] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=2
+[11:56:05.583] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=1
+[12:02:53.881] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=1
+[12:02:57.659] RC-CANDIDATE disconnect-release_all server.py:client_handler clients_left=1

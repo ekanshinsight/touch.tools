@@ -1,0 +1,13 @@
+{
+  "name": "Touch Tools",
+  "short_name": "Touch",
+  "description": "Control your PC's mouse and keyboard from your tablet.",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b1120",
+  "theme_color": "#0b1120",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

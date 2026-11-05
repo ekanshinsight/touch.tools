@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1120">
+<title>Gesture live test · Touch Tools v1.4</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: #0b1120; color: #dbe4f5; font: 15px/1.35 system-ui, sans-serif;
+    display: flex; flex-direction: column; overscroll-behavior: none;
+    -webkit-user-select: none; user-select: none; touch-action: none;
+  }
+  header {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    background: #111a2e; border-bottom: 1px solid #22304a; flex: 0 0 auto;
+  }
+  header b { font-size: 16px; }
+  .badge { background: #1d4ed8; color: #fff; font-size: 12px; font-weight: 700;
+    border-radius: 8px; padding: 3px 8px;
+  }
+  .lablink { color: #7dd3fc; font-size: 13px; font-weight: 600; text-decoration: none;
+    margin-left: auto; border: 1px solid #2563eb; border-radius: 8px; padding: 4px 9px; }
+    padding: 2px 8px; border-radius: 999px; }
+  #conn { margin-left: auto; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  #conn .dot { width: 9px; height: 9px; border-radius: 50%; background: #f59e0b; }
+  #conn.ok .dot { background: #22c55e; }
+  #conn.bad .dot { background: #ef4444; }
+  #logcnt { font-size: 13px; color: #fbbf24; background: #1b2408; border: 1px solid #3f6212;
+    padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  #hint { flex: 0 0 auto; font-size: 13px; color: #93a5c4; padding: 8px 14px 2px; }
+  #hint b { color: #4ade80; }
+  #stage { flex: 1 1 auto; min-height: 0; position: relative; margin: 8px 10px; }
+  canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    background: #0d1526; border-radius: 14px; border: 1px solid #22304a;
+    touch-action: none; display: block;
+  }
+  #toolbar { flex: 0 0 auto; display: flex; gap: 8px; padding: 0 12px 8px; align-items: center; }
+  button, label.chip {
+    background: #1b2a47; color: #dbe4f5; border: 1px solid #2c3d5f; border-radius: 10px;
+    padding: 8px 14px; font-size: 14px; cursor: pointer;
+  }
+  button:active { background: #27406b; }
+  button[disabled] { opacity: .4; }
+  button.primary { background: #1d4ed8; border-color: #2563eb; }
+  label.chip { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  #metrics {
+    flex: 0 0 auto; padding: 0 12px 12px; display: grid; gap: 6px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+  .gate { background: #131d33; border: 1px solid #22304a; border-radius: 8px;
+    padding: 5px 8px; font-size: 12px; color: #93a5c4; }
+  .gate b { display: block; color: #dbe4f5; font-size: 13px; }
+  .gate.pass b { color: #4ade80; }
+  .gate.fail { border-color: #7f1d1d; }
+  .gate.fail b { color: #f87171; }
+  #verdict {
+    grid-column: 1 / -1; font-size: 15px; font-weight: 700; padding: 7px 10px;
+    border-radius: 8px; background: #1b1f2e; border: 1px solid #2c3d5f;
+  }
+  #verdict.ok { color: #4ade80; background: #0f2318; border-color: #166534; }
+  #verdict.no { color: #f87171; background: #2a1414; border-color: #7f1d1d; }
+</style>
+</head>
+<body>
+  <header>
+    <b>Gesture live test</b>
+    <span class="badge" title="version — bumps +0.1 every change round">v1.4</span>
+    <span id="conn"><span class="dot"></span><span id="conn-txt">connecting…</span></span>
+    <span id="logcnt">📼 0 strokes saved</span>
+    <a class="lablink" href="./gesture-lab.html">Full data-lab (＋Add) →</a>
+  </header>
+  <div id="hint">Draw your <b>O, V or n (Notepad) exactly as you do in the controller</b> (spirals fine!) → every stroke is AUTO-SAVED to the PC for tuning. Pass → <b>Ctrl+I</b> (O), <b>Ctrl+Alt+S</b> (V) or <b>launch Notepad</b> (n) fires on the PC + written here. <b>↺</b> to clear the canvas (saved strokes stay).</div>
+  <div id="stage"><canvas id="cv"></canvas></div>
+  <div id="toolbar">
+    <button id="btn-clear">↺ Clear</button>
+    <button id="btn-send" class="primary" disabled>Send Ctrl+I to PC</button>
+    <label class="chip"><input type="checkbox" id="chk-sm"> show trace</label>
+  </div>
+  <div id="metrics">
+    <div id="verdict">Draw an O to begin.</div>
+  </div>
+
+<script>
+/* ═══════════════════ R13.20 recognizer — VERBATIM COPY from web/app.js ═══════════════════
+   (keep in sync: smoothTrace + recognizeCircle + recognizeV + recognizeNotepad must be
+   byte-identical to app.js so this test page tells the truth about the controller) */
+// R13.8: the trace is SMOOTHED first — a real finger leaves a jittery, dense
+// point cloud whose raw perimeter reads ~4+ (way over the 3.75 gate) and fails
+// every otherwise-perfect hand-drawn O. A short moving average removes the tremor
+// without hurting squares/triangles (their straight edges don't smooth away).
+function smoothTrace(pts, half) {
+  if (pts.length < 2 * half) return pts.slice();
+  const out = new Array(pts.length);
+  for (let i = 0; i < pts.length; i++) {
+    let sx = 0, sy = 0, n = 0;
+    for (let j = i - half; j <= i + half; j++) {
+      const k = Math.max(0, Math.min(pts.length - 1, j));
+      sx += pts[k][0]; sy += pts[k][1]; n++;
+    }
+    out[i] = [sx / n, sy / n];
+  }
+  return out;
+}
+function recognizeCircle(raw) {
+  if (!raw || raw.length < 14) return false;
+  const pts = smoothTrace(raw, Math.min(5, Math.max(2, Math.ceil(raw.length / 60))));
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity, cx = 0, cy = 0;
+  for (const p of pts) {
+    if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0];
+    if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1];
+    cx += p[0]; cy += p[1];
+  }
+  cx /= pts.length; cy /= pts.length;
+  const bw = maxX - minX, bh = maxY - minY;
+  const diag = Math.hypot(bw, bh);
+  const ar = bw / bh;
+  let perim = 0;
+  for (let i = 1; i < pts.length; i++) perim += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+  const pr = perim / Math.max(bw, bh);
+  const d0 = pts[0], d1 = pts[pts.length - 1];
+  const close = Math.hypot(d1[0] - d0[0], d1[1] - d0[1]) / diag;
+  // unwrap angles around the centroid → how many full turns; collect radii
+  let prev = Math.atan2(pts[0][1] - cy, pts[0][0] - cx), turns = 0;
+  const rads = [];
+  for (const p of pts) {
+    const a = Math.atan2(p[1] - cy, p[0] - cx);
+    let d = a - prev; prev = a;
+    while (d > Math.PI) d -= 2 * Math.PI;
+    while (d < -Math.PI) d += 2 * Math.PI;
+    turns += d;
+    rads.push(Math.hypot(p[0] - cx, p[1] - cy));
+  }
+  const turnsPi = Math.abs(turns) / Math.PI;
+  // roundness via trimmed radius extremes (5th↔95th percentile — one jittered
+  // point can't fool it).
+  rads.sort((a, b) => a - b);
+  const k = Math.max(1, Math.floor(rads.length * 0.05));
+  const rratio = rads[rads.length - 1 - k] / rads[k];
+
+  // MODE A — a clean single loop (the original strict recognizer): rejects
+  // squares (pr≈4.0 > 3.75) and triangles (rratio≈2.0 > 1.65).
+  const modeA = diag >= 36 && ar >= 0.55 && ar <= 1.8 && pr >= 2.6 && pr <= 3.75 &&
+                close <= 0.35 && turnsPi >= 1.5 && turnsPi <= 2.6 && rratio <= 1.65;
+  // MODE B — R13.9, tuned from 58 REAL tablet traces: the user's natural "O" is a
+  // loose, jittery, MULTI-TURN inward spiral — open at the end (closure up to 0.85),
+  // high perimeter (pr up to 6.5), shrinking/wobbly radius (rratio up to 12).
+  // Squares/triangles/lines stay out via the turns floor: they sum to exactly 2π,
+  // the user's O's run 2.2π–4.9π.
+  const modeB = diag >= 30 && ar >= 0.5 && ar <= 2.0 && pr >= 2.8 && pr <= 6.5 &&
+                close <= 0.85 && turnsPi >= 2.2 && rratio <= 12;
+  return modeA || modeB;
+}
+// R13.18: V recognizer — is a one-finger trace a sharp two-arm "V" (finger down
+// then up, like the letter V)? Fires the configurable vee gesture (default
+// Ctrl+Alt+S — Vibe launch). Checked only when recognizeCircle already said no,
+// so O loops never collide with it.
+// The trace is FIRST resampled to a fixed ~6px spacing (kills most tremor), then
+// simplified with Ramer-Douglas-Peucker. A V has EXACTLY one bend, so it reduces
+// to [start, apex, end]; W/M/zigzags/curves keep more points and a line collapses
+// to two. (Per-segment heading SUMS are unreliable for this: finger tremor on
+// ~1px raw segments inflates the sum to 2π+ even on straight arms.)
+// Geometry:
+//   - big enough to matter, OPEN ends (start ≠ end) — a loop, triangle or square
+//     closes up and is rejected
+//   - simplifies to EXACTLY 3 points → a single sharp bend
+//   - apex interior angle in [15°, 85°] — a 90° corner (an "L") is too wide,
+//     a shallow arc is wider still
+//   - both arms ≥ 15% of the diagonal, no lopsided "checkmark" (ratio ≤ 4)
+//   - the bend sits in the MIDDLE of the stroke (0.25–0.75), not at an end
+function resamplePath(pts, step) {
+  if (!pts || pts.length < 2) return [];
+  const out = [pts[0].slice()];
+  let D = 0, prev = pts[0];
+  for (let i = 1; i < pts.length; i++) {
+    const p = pts[i];
+    const seg = Math.hypot(p[0] - prev[0], p[1] - prev[1]);
+    if (seg === 0) continue;
+    if (D + seg >= step) {
+      const f = (step - D) / seg;
+      out.push([prev[0] + (p[0] - prev[0]) * f, prev[1] + (p[1] - prev[1]) * f]);
+      let rest = seg - (step - D);
+      while (rest >= step) {
+        const last = out[out.length - 1];
+        out.push([last[0] + (p[0] - prev[0]) * (step / seg), last[1] + (p[1] - prev[1]) * (step / seg)]);
+        rest -= step;
+      }
+      D = rest;
+    } else {
+      D += seg;
+    }
+    prev = p;
+  }
+  return out;
+}
+function rdp(points, eps) {
+  if (points.length < 3) return points;
+  const a = points[0], b = points[points.length - 1];
+  const dx = b[0] - a[0], dy = b[1] - a[1], len2 = dx * dx + dy * dy;
+  let maxDist = -1, idx = -1;
+  for (let i = 1; i < points.length - 1; i++) {
+    const px = points[i][0], py = points[i][1];
+    let d;
+    if (len2 === 0) d = Math.hypot(px - a[0], py - a[1]);
+    else {
+      const t = Math.max(0, Math.min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / len2));
+      d = Math.hypot(px - (a[0] + t * dx), py - (a[1] + t * dy));
+    }
+    if (d > maxDist) { maxDist = d; idx = i; }
+  }
+  if (maxDist > eps && idx > 0) {
+    const left = rdp(points.slice(0, idx + 1), eps);
+    const right = rdp(points.slice(idx), eps);
+    return left.slice(0, -1).concat(right);
+  }
+  return [a, b];
+}
+function recognizeV(raw) {
+  if (!raw || raw.length < 12) return false;
+  const pts = resamplePath(raw, 6);
+  if (pts.length < 8) return false;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const p of pts) {
+    if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0];
+    if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1];
+  }
+  const bw = maxX - minX, bh = maxY - minY, diag = Math.hypot(bw, bh);
+  if (diag < 30) return false;                       // too small to matter
+  const d0 = pts[0], d1 = pts[pts.length - 1];
+  const close = Math.hypot(d1[0] - d0[0], d1[1] - d0[1]) / diag;
+  if (close < 0.25) return false;                    // ends loop back → circle/triangle/square
+
+  // Ramer-Douglas-Peucker: a V has EXACTLY one bend, so it simplifies to
+  // [start, apex, end]. W/M/zigzag/curve/scribble keep more points; a line
+  // collapses to 2.
+  const sim = rdp(pts, Math.max(4, diag * 0.05));
+  if (sim.length !== 3) return false;
+  const a = sim[0], m = sim[1], b = sim[2];
+
+  // apex interior angle + arm lengths
+  const v1x = a[0] - m[0], v1y = a[1] - m[1];
+  const v2x = b[0] - m[0], v2y = b[1] - m[1];
+  const l1 = Math.hypot(v1x, v1y), l2 = Math.hypot(v2x, v2y);
+  if (l1 < diag * 0.15 || l2 < diag * 0.15) return false;           // a stub arm → more a line+nick
+  if (Math.max(l1, l2) / Math.min(l1, l2) > 4) return false;        // too lopsided (checkmark-like)
+  const dot = Math.max(-1, Math.min(1, (v1x * v2x + v1y * v2y) / (l1 * l2)));
+  const ang = Math.acos(dot) * 180 / Math.PI;
+  if (ang < 15 || ang > 85) return false;                           // too sharp / an L is 90° → out
+
+  // the bend must sit in the MIDDLE of the stroke, not at an end
+  let ai = 0, best = Infinity;
+  for (let i = 0; i < pts.length; i++) {
+    const dd = (pts[i][0] - m[0]) ** 2 + (pts[i][1] - m[1]) ** 2;
+    if (dd < best) { best = dd; ai = i; }
+  }
+  const apexPos = ai / (pts.length - 1);
+  if (apexPos < 0.25 || apexPos > 0.75) return false;
+  return true;
+}
+// R13.19+: Notepad recognizer — is a one-finger trace the LETTER N/n (a tall,
+// open, ELONGATED multi-bend stroke, drawn as two arches — "draw an n on the pad")?
+// Fires the configurable notepad gesture (default: launch notepad.exe). Checked ONLY
+// when the trace is NOT a circle and NOT a V, so loops and single bends never
+// collide. Retuned R13.20 on the user's REAL n-letters (gesture-lab export 2026-08-27):
+//   - big enough to matter, OPEN ends (close/dist >= 0.4 — an n never closes)
+//   - ELONGATED (max/min >= 1.2) — horizontal OR vertical (portrait AND landscape)
+//   - RDP keeps 4..12 points (eps 0.03·diag — the shallow n-arches/zigzag bends
+//     survive; 0.05 like the V flattens them into a straight line)
+//   - every bend is REAL: |cross|/(la·lb) >= 0.08 — a tremor nick is skipped
+//   - NET-TURN BALANCE: |net|/Σ|turns| < 0.7 — natural handwriting draws the n's
+//     DOWNSTROKES vertical and UPSTROKES slanted, so bends lean one way (bal 0.5-0.7)
+//     without being a one-way scribble; arcs/same-sign scribbles still rejected
+function recognizeNotepad(raw) {
+  if (!raw || raw.length < 12) return false;
+  const pts = resamplePath(raw, 6);
+  if (pts.length < 8) return false;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const p of pts) {
+    if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0];
+    if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1];
+  }
+  const bw = maxX - minX, bh = maxY - minY, diag = Math.hypot(bw, bh);
+  if (diag < 30) return false;                       // too small to matter
+  const d0 = pts[0], d1 = pts[pts.length - 1];
+  const close = Math.hypot(d1[0] - d0[0], d1[1] - d0[1]) / diag;
+  if (close < 0.4) return false;                     // ends loop back → circle/triangle/square
+  if (Math.max(bw, bh) / Math.max(1, Math.min(bw, bh)) < 1.2) return false;  // not elongated → O/V/scribble
+
+  // RDP: a zigzag keeps several bends; a line collapses to 2, a V to 3.
+  const sim = rdp(pts, Math.max(4, diag * 0.03));
+  if (sim.length < 4 || sim.length > 12) return false;
+
+  // net-turn balance: real zigzags alternate left/right, so signed turns cancel
+  // (|net| small). An arc/circle/scribble keeps turning one way → |net| big.
+  let net = 0, tot = 0;
+  for (let i = 1; i < sim.length - 1; i++) {
+    const a = sim[i - 1], m = sim[i], b = sim[i + 1];
+    const v1x = a[0] - m[0], v1y = a[1] - m[1];
+    const v2x = b[0] - m[0], v2y = b[1] - m[1];
+    const l1 = Math.hypot(v1x, v1y), l2 = Math.hypot(v2x, v2y);
+    if (l1 < 1 || l2 < 1) continue;
+    const cross = v1x * v2y - v1y * v2x;
+    const mag = Math.abs(cross) / (l1 * l2);         // sine of the turn angle
+    if (mag < 0.08) continue;                        // nearly straight → tremor nick, not a bend
+    net += Math.sign(cross); tot += 1;
+  }
+  if (tot < 3) return false;                         // need at least ~3 real bends
+  if (Math.abs(net) / tot >= 0.7) return false;      // letter-n: natural downstroke/upstroke lean gives bal 0.5-0.7
+  return true;
+}
+/* ═══════════════════════════════════════════════════════════════════════════════ */
+
+const canvas = document.getElementById('cv');
+const ctx = canvas.getContext('2d');
+const metrics = document.getElementById('metrics');
+const verdictEl = document.getElementById('verdict');
+const btnSend = document.getElementById('btn-send');
+const btnClear = document.getElementById('btn-clear');
+const chkSm = document.getElementById('chk-sm');
+
+let trace = [], drawing = false, lastDiag = null, lastOk = false;
+
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = canvas.clientWidth * dpr;
+  canvas.height = canvas.clientHeight * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  draw();
+}
+window.addEventListener('resize', resize);
+
+function draw() {
+  const cw = canvas.clientWidth, ch = canvas.clientHeight;
+  ctx.clearRect(0, 0, cw, ch);
+  ctx.fillStyle = '#0d1526'; ctx.fillRect(0, 0, cw, ch);
+  if (!chkSm.checked) return;                    // blank canvas by default — draw by feel, no distractions
+  const path = (pts, style, w) => {
+    if (!pts || pts.length < 2) return;
+    ctx.strokeStyle = style; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.stroke();
+  };
+  path(trace, 'rgba(96,165,250,0.55)', 6);
+  if (lastDiag) path(lastDiag.pts, 'rgba(74,222,128,0.85)', 2.5);
+}
+function flashOk() {
+  canvas.style.borderColor = '#4ade80';
+  setTimeout(() => { canvas.style.borderColor = '#22304a'; }, 600);
+}
+
+/* ---- analysis: same gates as recognizeCircle (mode A clean loop / mode B spiral),
+       each metric exposed for diagnosis ---- */
+function analyze(raw) {
+  const half = Math.min(5, Math.max(2, Math.ceil(raw.length / 60)));
+  const pts = smoothTrace(raw, half);
+  let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9, cx = 0, cy = 0;
+  for (const p of pts) { if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0]; if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1]; cx += p[0]; cy += p[1]; }
+  cx /= pts.length; cy /= pts.length;
+  const bw = maxX - minX, bh = maxY - minY, diag = Math.hypot(bw, bh);
+  const ar = bw / bh;
+  let perim = 0, rawPerim = 0;
+  for (let i = 1; i < pts.length; i++) perim += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+  for (let i = 1; i < raw.length; i++) rawPerim += Math.hypot(raw[i][0] - raw[i - 1][0], raw[i][1] - raw[i - 1][1]);
+  const pr = perim / Math.max(bw, bh), rawPr = rawPerim / Math.max(bw, bh);
+  const d0 = pts[0], d1 = pts[pts.length - 1];
+  const close = Math.hypot(d1[0] - d0[0], d1[1] - d0[1]) / diag;
+  let prev = Math.atan2(pts[0][1] - cy, pts[0][0] - cx), turns = 0;
+  const rads = [];
+  for (const p of pts) {
+    const a = Math.atan2(p[1] - cy, p[0] - cx);
+    let d = a - prev; prev = a;
+    while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+    turns += d; rads.push(Math.hypot(p[0] - cx, p[1] - cy));
+  }
+  rads.sort((a, b) => a - b);
+  const k = Math.max(1, Math.floor(rads.length * 0.05));
+  const rratio = rads[rads.length - 1 - k] / rads[k];
+  const turnsPi = Math.abs(turns) / Math.PI;
+  const modeA = diag >= 36 && ar >= 0.55 && ar <= 1.8 && pr >= 2.6 && pr <= 3.75 &&
+                close <= 0.35 && turnsPi >= 1.5 && turnsPi <= 2.6 && rratio <= 1.65;
+  const modeB = diag >= 30 && ar >= 0.5 && ar <= 2.0 && pr >= 2.8 && pr <= 6.5 &&
+                close <= 0.85 && turnsPi >= 2.2 && rratio <= 12;
+  const gates = [
+    ['points', raw.length >= 14, raw.length + ' pts'],
+    ['size (diag)', diag >= 30, Math.round(diag) + 'px'],
+    ['aspect', ar >= 0.5 && ar <= 2.0, ar.toFixed(2)],
+    ['roundness pr', pr >= 2.8 && pr <= 6.5, pr.toFixed(2) + ' (raw ' + rawPr.toFixed(2) + ')'],
+    ['closure', close <= 0.85, close.toFixed(2)],
+    ['loops (turns)', turnsPi >= 2.2, turnsPi.toFixed(2) + 'π'],
+    ['radius ratio', rratio <= 12, rratio.toFixed(2)],
+  ];
+  const failedB = gates.filter(g => !g[1]).map(g => g[0]);
+  // ---- V analysis (letter V — finger down, then up) — mirrors recognizeV's gates,
+  //      computed on the RESAMPLED trace simplified with Ramer-Douglas-Peucker,
+  //      exactly like recognizeV itself ----
+  let v = null;
+  if (raw.length >= 14) {
+    const vpts = resamplePath(raw, 6);
+    if (vpts.length >= 8) {
+      let vMinX = 1e9, vMinY = 1e9, vMaxX = -1e9, vMaxY = -1e9;
+      for (const p of vpts) { if (p[0] < vMinX) vMinX = p[0]; if (p[0] > vMaxX) vMaxX = p[0]; if (p[1] < vMinY) vMinY = p[1]; if (p[1] > vMaxY) vMaxY = p[1]; }
+      const vDiag = Math.hypot(vMaxX - vMinX, vMaxY - vMinY);
+      const vd0 = vpts[0], vd1 = vpts[vpts.length - 1];
+      const vClose = vDiag > 0 ? Math.hypot(vd1[0] - vd0[0], vd1[1] - vd0[1]) / vDiag : 1;
+      const sim = rdp(vpts, Math.max(4, vDiag * 0.05));
+      let simAng = -1, simL1 = 0, simL2 = 0, simRatio = 0, apexPos = -1;
+      if (sim.length === 3) {
+        const m = sim[1];
+        const v1x = sim[0][0] - m[0], v1y = sim[0][1] - m[1];
+        const v2x = sim[2][0] - m[0], v2y = sim[2][1] - m[1];
+        simL1 = Math.hypot(v1x, v1y); simL2 = Math.hypot(v2x, v2y);
+        if (simL1 > 0 && simL2 > 0) {
+          const dot = Math.max(-1, Math.min(1, (v1x * v2x + v1y * v2y) / (simL1 * simL2)));
+          simAng = Math.acos(dot) * 180 / Math.PI;
+          simRatio = Math.max(simL1, simL2) / Math.min(simL1, simL2);
+        }
+        let ai = 0, best = Infinity;
+        for (let i = 0; i < vpts.length; i++) { const dd = (vpts[i][0] - m[0]) ** 2 + (vpts[i][1] - m[1]) ** 2; if (dd < best) { best = dd; ai = i; } }
+        apexPos = ai / (vpts.length - 1);
+      }
+      const vGates = [
+        ['points', vpts.length >= 8, vpts.length + ' resampled'],
+        ['size (diag)', vDiag >= 30, Math.round(vDiag) + 'px'],
+        ['open ends', vClose >= 0.25, 'closure ' + vClose.toFixed(2)],
+        ['one bend', sim.length === 3, sim.length + ' pts after simplify'],
+        ['V angle', simAng >= 15 && simAng <= 85, simAng < 0 ? '—' : Math.round(simAng) + '°'],
+        ['arm lengths', simL1 >= vDiag * 0.15 && simL2 >= vDiag * 0.15 && simRatio <= 4, simL1 > 0 ? Math.round(simL1) + '/' + Math.round(simL2) + 'px' : '—'],
+        ['bend mid-stroke', apexPos >= 0.25 && apexPos <= 0.75, apexPos < 0 ? '—' : Math.round(apexPos * 100) + '%'],
+      ];
+      v = { ok: recognizeV(raw), gates: vGates, failedV: vGates.filter(g => !g[1]).map(g => g[0]), simLen: sim.length, simAng, simL1, simL2, simRatio, apexPos };
+    }
+  }
+  // ---- Notepad analysis (letter n — two-arch stroke) — mirrors
+  //      recognizeNotepad's gates exactly, on the resampled + RDP-simplified trace ----
+  let n = null;
+  if (raw.length >= 12) {
+    const npts = resamplePath(raw, 6);
+    if (npts.length >= 8) {
+      let nMinX = 1e9, nMinY = 1e9, nMaxX = -1e9, nMaxY = -1e9;
+      for (const p of npts) { if (p[0] < nMinX) nMinX = p[0]; if (p[0] > nMaxX) nMaxX = p[0]; if (p[1] < nMinY) nMinY = p[1]; if (p[1] > nMaxY) nMaxY = p[1]; }
+      const nBw = nMaxX - nMinX, nBh = nMaxY - nMinY, nDiag = Math.hypot(nBw, nBh);
+      const nd0 = npts[0], nd1 = npts[npts.length - 1];
+      const nClose = nDiag > 0 ? Math.hypot(nd1[0] - nd0[0], nd1[1] - nd0[1]) / nDiag : 1;
+      const nElong = Math.max(nBw, nBh) / Math.max(1, Math.min(nBw, nBh));
+      const nsim = rdp(npts, Math.max(4, nDiag * 0.03));
+      let nNet = 0, nTot = 0;
+      for (let i = 1; i < nsim.length - 1; i++) {
+        const a = nsim[i - 1], m = nsim[i], b = nsim[i + 1];
+        const v1x = a[0] - m[0], v1y = a[1] - m[1], v2x = b[0] - m[0], v2y = b[1] - m[1];
+        const l1 = Math.hypot(v1x, v1y), l2 = Math.hypot(v2x, v2y);
+        if (l1 < 1 || l2 < 1) continue;
+        const cross = v1x * v2y - v1y * v2x;
+        const mag = Math.abs(cross) / (l1 * l2);
+        if (mag < 0.08) continue;
+        nNet += Math.sign(cross); nTot += 1;
+      }
+      const nBalance = nTot >= 3 ? Math.abs(nNet) / nTot : 99;
+      const nGates = [
+        ['points', npts.length >= 8, npts.length + ' resampled'],
+        ['size (diag)', nDiag >= 30, Math.round(nDiag) + 'px'],
+        ['open ends', nClose >= 0.4, 'closure ' + nClose.toFixed(2)],
+        ['elongated', nElong >= 1.2, nElong.toFixed(2)],
+        ['bends (RDP)', nsim.length >= 4 && nsim.length <= 12, nsim.length + ' pts after simplify'],
+        ['turn balance', nBalance < 0.7, nTot >= 3 ? Math.abs(nNet) + '/' + nTot + ' turns' : 'too few'],
+      ];
+      n = { ok: recognizeNotepad(raw), gates: nGates, failedN: nGates.filter(g => !g[1]).map(g => g[0]), simLen: nsim.length, nClose, nElong, nBalance, nTot };
+    }
+  }
+  return { ok: modeA || modeB, modeA, modeB, failedB, gates, pts, half, raw, bw, bh, pr, rawPr, diag, close, turns, turnsPi, rratio, v, n };
+}
+
+function renderMetrics(d) {
+  metrics.innerHTML = '';
+  const v = document.createElement('div');
+  v.id = 'verdict';
+  if (d.ok) {
+    v.className = 'ok';
+    v.textContent = d.modeB
+      ? '✓ CIRCLE (spiral — mode B) — Ctrl+I fired on the PC.'
+      : '✓ CIRCLE (clean loop — mode A) — Ctrl+I fired on the PC.';
+  } else if (d.v && d.v.ok) {
+    v.className = 'ok';
+    v.textContent = '✓ V (letter V — down, then up) — Ctrl+Alt+S fired on the PC.';
+  } else if (d.n && d.n.ok) {
+    v.className = 'ok';
+    v.textContent = '✓ N (letter n — Notepad) — Notepad launch fired on the PC.';
+  } else {
+    v.className = 'no';
+    const cf = d.failedB.join(', ') || 'too few points';
+    const vf = (d.v && d.v.failedV.length) ? d.v.failedV.join(', ') : '';
+    const nf = (d.n && d.n.failedN.length) ? d.n.failedN.join(', ') : '';
+    v.textContent = '✗ not O, V or n — circle: ' + cf + (vf ? ' · V: ' + vf : '') + (nf ? ' · n: ' + nf : '');
+  }
+  metrics.appendChild(v);
+  const head = document.createElement('div');
+  head.className = 'gate';
+  head.innerHTML = '<b>smoothed with</b> half=' + d.half + ' · raw ' + d.raw.length + ' pts → ' + d.pts.length + ' pts';
+  metrics.appendChild(head);
+  const show = d.ok ? d.gates : (d.v && d.v.ok ? d.v.gates : (d.n && d.n.ok ? d.n.gates : d.gates.concat(d.v ? d.v.gates : []).concat(d.n ? d.n.gates : [])));
+  for (const [name, pass, val] of show) {
+    const el = document.createElement('div');
+    el.className = 'gate ' + (pass ? 'pass' : 'fail');
+    el.innerHTML = '<b>' + val + '</b>' + name;
+    metrics.appendChild(el);
+  }
+  const isV = !d.ok && d.v && d.v.ok;
+  const isN = !d.ok && d.n && d.n.ok && !isV;
+  btnSend.disabled = !(d.ok || isV || isN);
+  btnSend.textContent = isN ? 'Launch Notepad on PC' : (isV ? 'Send Ctrl+Alt+S to PC' : 'Send Ctrl+I to PC');
+  lastDiag = d; lastOk = d.ok || isV || isN;
+}
+
+function evaluate() {
+  const d = analyze(trace);
+  renderMetrics(d);
+  window.__lastDiag = d;              // test hook
+  draw();
+  if (d.ok) {
+    flashOk();                        // green border flash — success is visible at a glance
+    const obj = { type: 'combo', keys: ['ctrl', 'i'] };
+    if (window.__sendHook) { window.__sendHook(obj); return; }   // headless test capture
+    const sent = sendToPC(obj);
+    if (!sent) { setConn('PC offline — not sent', 'bad'); }
+  } else if (d.v && d.v.ok) {
+    flashOk();                        // R13.18: letter V → Ctrl+Alt+S (Vibe)
+    const obj = { type: 'combo', keys: ['ctrl', 'alt', 's'] };
+    if (window.__sendHook) { window.__sendHook(obj); return; }   // headless test capture
+    const sent = sendToPC(obj);
+    if (!sent) { setConn('PC offline — not sent', 'bad'); }
+  } else if (d.n && d.n.ok) {
+    flashOk();                        // R13.19: zigzag → launch Notepad
+    const obj = { type: 'launch', name: 'notepad' };
+    if (window.__sendHook) { window.__sendHook(obj); return; }   // headless test capture
+    const sent = sendToPC(obj);
+    if (!sent) { setConn('PC offline — not sent', 'bad'); }
+  }
+  logTrace(d);
+}
+async function logTrace(d) {
+  if (window.__logHook) { window.__logHook(d); return; }         // headless test suppress
+  try {
+    await fetch('/api/traces', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        pts: trace, ok: d.ok,
+        cw: canvas.clientWidth, ch: canvas.clientHeight,
+      }),
+    });
+    refreshCount();
+  } catch (e) {}
+}
+async function refreshCount() {
+  try {
+    const j = await (await fetch('/api/traces')).json();
+    const el = document.getElementById('logcnt');
+    if (el) el.textContent = '📼 ' + j.count + ' strokes saved';
+  } catch (e) {}
+}
+
+/* ---- PC link (same protocol + PIN as the controller: hello on ws://host:8856) ---- */
+let ws = null;
+function setConn(txt, cls) {
+  document.getElementById('conn').className = cls || 'ok';
+  document.getElementById('conn-txt').textContent = txt;
+}
+function sendToPC(obj) {
+  if (ws && ws.readyState === 1) { try { ws.send(JSON.stringify(obj)); return true; } catch (e) {} }
+  return false;
+}
+function connectWS() {
+  const pin = localStorage.getItem('rc_pin') || '';
+  ws = new WebSocket('ws://' + location.hostname + ':8856/');
+  ws.onopen = () => ws.send(JSON.stringify({ type: 'hello', pin: pin }));
+  ws.onmessage = (ev) => {
+    try {
+      const d = JSON.parse(ev.data);
+      if (d.type === 'welcome') setConn('PC connected — O/V gestures fire live', 'ok');
+      else if (d.type === 'error' && d.message === 'wrong pin') {
+        setConn('wrong PIN — tap Send to retry (set in config.json)', 'bad');
+        const p = prompt('Enter the PC PIN (config.json):');
+        if (p != null) { localStorage.setItem('rc_pin', p.trim()); ws.close(); connectWS(); }
+      }
+    } catch (e) {}
+  };
+  ws.onclose = () => { setConn('PC offline — retrying…', 'bad'); setTimeout(connectWS, 2000); };
+}
+
+/* ---- canvas touch ---- */
+canvas.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+  trace = [[e.clientX, e.clientY]]; drawing = true; lastOk = false; lastDiag = null;
+  btnSend.disabled = true;
+  metrics.innerHTML = ''; verdictEl.remove();
+  draw();
+});
+canvas.addEventListener('pointermove', (e) => {
+  if (!drawing) return;
+  e.preventDefault();
+  const rawC = e.getCoalescedEvents ? e.getCoalescedEvents() : null;
+  const evts = (rawC && rawC.length) ? rawC : [e];   // empty [] → fall back to the event itself
+  for (const p of evts) trace.push([p.clientX, p.clientY]);
+  draw();
+});
+function finish(e) {
+  if (!drawing) return;
+  drawing = false;
+  trace.push([e.clientX, e.clientY]);
+  evaluate();
+}
+canvas.addEventListener('pointerup', finish);
+canvas.addEventListener('pointercancel', finish);
+document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+btnClear.addEventListener('click', () => { trace = []; lastDiag = null; lastOk = false; btnSend.disabled = true; metrics.innerHTML = ''; verdictEl.remove(); draw(); });
+btnSend.addEventListener('click', () => {
+  if (lastOk) {
+    const obj = lastDiag && lastDiag.n && lastDiag.n.ok && !lastDiag.ok && !(lastDiag.v && lastDiag.v.ok)
+      ? { type: 'launch', name: 'notepad' }
+      : lastDiag && lastDiag.v && lastDiag.v.ok && !lastDiag.ok
+      ? { type: 'combo', keys: ['ctrl', 'alt', 's'] }
+      : { type: 'combo', keys: ['ctrl', 'i'] };
+    if (window.__sendHook) { window.__sendHook(obj); return; }
+    sendToPC(obj);
+  }
+});
+chkSm.addEventListener('change', draw);
+
+resize();
+refreshCount();
+setTimeout(() => { resize(); connectWS(); }, 60);
+</script>
+</body>
+</html>

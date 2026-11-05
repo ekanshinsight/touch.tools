@@ -1,0 +1,10 @@
+{
+  "host": "0.0.0.0",
+  "http_port": 8855,
+  "ws_port": 8856,
+  "pin": "",
+  "launch": {
+    "tabletfriend": "",
+    "notepad": "notepad.exe"
+  }
+}

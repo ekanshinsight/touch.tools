@@ -1,0 +1,5 @@
+2.15
+# First non-comment line = the app version — read by app.js (local knowledge)
+# and fetched from the HOSTED copy for the push-update check.
+# HOST THE SAME FILE AT A PUBLIC URL (e.g. GitHub raw …/web/VERSION) and put
+# that URL in REMOTE_VERSION_URL in app.js (or localStorage rc_update_url).

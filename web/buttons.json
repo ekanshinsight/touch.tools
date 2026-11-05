@@ -1,0 +1,72 @@
+{
+  "sections": [
+    {
+      "name": "Edit / Clipboard",
+      "buttons": [
+        { "label": "Undo", "action": { "keys": ["ctrl", "z"] } },
+        { "label": "Redo", "action": { "keys": ["ctrl", "shift", "z"] } },
+        { "label": "Copy", "action": { "keys": ["ctrl", "c"] } },
+        { "label": "Cut", "action": { "keys": ["ctrl", "x"] } },
+        { "label": "Paste", "action": { "keys": ["ctrl", "v"] } },
+        { "label": "Select all", "action": { "keys": ["ctrl", "a"] } }
+      ]
+    },
+    {
+      "name": "File / Project",
+      "buttons": [
+        { "label": "Save", "action": { "keys": ["ctrl", "s"] } },
+        { "label": "Save as", "action": { "keys": ["ctrl", "shift", "s"] } },
+        { "label": "Export", "action": { "keys": ["ctrl", "shift", "e"] } },
+        { "label": "New", "action": { "keys": ["ctrl", "n"] } },
+        { "label": "Open", "action": { "keys": ["ctrl", "o"] } },
+        { "label": "Esc", "action": { "keys": ["esc"] } }
+      ]
+    },
+    {
+      "name": "Playback / Timeline",
+      "buttons": [
+        { "label": "Play/Pause", "action": { "keys": ["space"] } },
+        { "label": "Prev frame", "action": { "keys": ["left"] } },
+        { "label": "Next frame", "action": { "keys": ["right"] } },
+        { "label": "Go start", "action": { "keys": ["home"] } },
+        { "label": "Go end", "action": { "keys": ["end"] } },
+        { "label": "In point", "action": { "keys": ["i"] } },
+        { "label": "Out point", "action": { "keys": ["o"] } },
+        { "label": "Split / Del", "action": { "keys": ["delete"] } }
+      ]
+    },
+    {
+      "name": "Navigation",
+      "buttons": [
+        { "label": "←", "action": { "keys": ["left"] } },
+        { "label": "↑", "action": { "keys": ["up"] } },
+        { "label": "↓", "action": { "keys": ["down"] } },
+        { "label": "→", "action": { "keys": ["right"] } },
+        { "label": "PgUp", "action": { "keys": ["pageup"] } },
+        { "label": "PgDn", "action": { "keys": ["pagedown"] } }
+      ]
+    },
+    {
+      "name": "Numbers",
+      "buttons": [
+        { "label": "1", "action": { "keys": ["1"] } },
+        { "label": "2", "action": { "keys": ["2"] } },
+        { "label": "3", "action": { "keys": ["3"] } },
+        { "label": "4", "action": { "keys": ["4"] } },
+        { "label": "5", "action": { "keys": ["5"] } },
+        { "label": "6", "action": { "keys": ["6"] } },
+        { "label": "7", "action": { "keys": ["7"] } },
+        { "label": "8", "action": { "keys": ["8"] } },
+        { "label": "9", "action": { "keys": ["9"] } },
+        { "label": "0", "action": { "keys": ["0"] } }
+      ]
+    },
+    {
+      "name": "Example — type text",
+      "buttons": [
+        { "label": "Type 'hello'", "action": { "text": "hello" } },
+        { "label": "Type name", "action": { "text": "your name here" } }
+      ]
+    }
+  ]
+}

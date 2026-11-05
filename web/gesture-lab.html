@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Gesture Data-Lab · Touch Tools</title>
+<style>
+  :root {
+    --bg:#0f172a; --panel:#1e293b; --panel2:#273549; --ink:#e2e8f0; --muted:#94a3b8;
+    --accent:#22d3ee; --green:#22c55e; --red:#ef4444; --amber:#f59e0b;
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; overscroll-behavior:none; }
+  #wrap { display:flex; flex-direction:column; height:100%; max-width:900px; margin:0 auto; }
+
+  header { display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:10px 12px 8px; }
+  .title { font-weight:700; font-size:17px; margin-right:auto; display:flex; align-items:center; gap:8px; }
+  .title .dot { width:9px; height:9px; border-radius:50%; background:var(--green); display:inline-block; }
+  .title small { color:var(--muted); font-weight:400; font-size:11px; display:block; line-height:1.1; }
+  .ver { background:#0e7490; color:#ecfeff; border:1px solid var(--accent); border-radius:8px;
+    font-size:11px; font-weight:700; padding:2px 7px; letter-spacing:.5px; flex:0 0 auto; }
+  #btn-help { border-radius:50%; width:44px; height:44px; padding:0; font-size:17px; font-weight:700;
+    border-color:#64748b; color:#cbd5e1; flex:0 0 auto; }
+  #tour { position:fixed; inset:0; z-index:60; display:none; }
+  #tour.on { display:block; }
+  #tour .hole { position:fixed; border-radius:12px; pointer-events:none;
+    box-shadow:0 0 0 9999px rgba(2,6,23,.80); transition:left .16s ease, top .16s ease, width .16s ease, height .16s ease; }
+  #tour .card { position:fixed; z-index:61; width:min(88vw,340px); background:var(--panel);
+    border:1px solid #475569; border-radius:14px; padding:14px 16px 12px;
+    box-shadow:0 14px 44px rgba(0,0,0,.55); }
+  #tour .card h3 { margin:0 0 6px; font-size:15px; }
+  #tour .card p { margin:0 0 12px; font-size:13px; color:var(--muted); line-height:1.55; }
+  #tour .trow { display:flex; align-items:center; gap:8px; }
+  #tour .trow .step { font-size:11px; color:var(--muted); margin-right:auto; }
+  #tour .trow button { background:var(--panel2); border:1px solid #475569; color:var(--ink);
+    border-radius:8px; padding:7px 13px; font-size:12px; font-weight:600; cursor:pointer; }
+  #tour .trow #tour-next { background:#0e7490; border-color:var(--accent); color:#ecfeff; }
+  header button, #btn-add, #btn-tick, #btn-adopt, #btn-dl, #btn-clear, #btn-action, #btn-implement {
+    background:var(--panel); color:var(--ink); border:1px solid #334155; border-radius:8px;
+    padding:8px 10px; font-size:13px; font-weight:600; cursor:pointer;
+    min-height:44px; touch-action:manipulation;
+  }
+  header button:active { background:var(--panel2); }
+  #btn-add { border-color:#0ea5e9; color:#38bdf8; }
+  #btn-tick { border-color:var(--green); color:var(--green); }
+  #btn-dl { border-color:var(--accent); color:var(--accent); }
+  #btn-clear { border-color:var(--red); color:var(--red); }
+  .autotick { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--muted);
+    background:var(--panel); border:1px solid #334155; border-radius:8px; padding:6px 9px; user-select:none; }
+  .autotick input { accent-color:var(--green); }
+  .autotick.on { border-color:var(--green); color:var(--ink); }   /* auto ✓ live state is obvious */
+  #btn-adopt { border-color:var(--amber); color:var(--amber); }
+  #btn-implement { border-color:var(--green); color:var(--green); }
+  #btn-action { border-color:var(--accent); color:var(--accent); }
+
+  nav { display:flex; gap:6px; padding:0 12px 8px; overflow-x:auto; scrollbar-width:none; }
+  nav::-webkit-scrollbar { display:none; }
+  .tab { background:var(--panel); color:var(--muted); border:1px solid #334155; border-radius:9px;
+    padding:7px 12px; font-size:12px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px;
+    min-height:44px; touch-action:manipulation; }
+  .tab.active { background:#164e63; border-color:var(--accent); color:#e0f2fe; }
+  .tab .n { background:#0f172a; border-radius:8px; padding:1px 6px; font-size:11px; color:var(--accent); }
+  .tab.dim { opacity:.6; }
+
+  main { flex:1; display:flex; flex-direction:column; padding:0 12px 10px; min-height:0; }
+  #canvas-wrap { flex:1; border:1px dashed #334155; border-radius:12px; overflow:hidden;
+    background:radial-gradient(circle at 30% 20%, #1a2437, #0d1522); position:relative; }
+  #cv { width:100%; height:100%; display:block; touch-action:none; }
+  .hint { position:absolute; left:12px; bottom:10px; font-size:11px; color:var(--muted); pointer-events:none; }
+
+  #status { display:flex; flex-wrap:wrap; gap:6px 14px; padding:8px 2px 0; font-size:12px; color:var(--muted); }
+  /* R13.40: narrow screens — status wraps instead of overflowing; canvas keeps a floor */
+  @media (max-width:480px) {
+    header { gap:6px; padding:8px 10px 6px; }
+    .title { font-size:15px; flex:1 1 100%; }
+    header button, .autotick { font-size:12px; padding:7px 9px; }
+    #canvas-wrap { min-height:220px; }
+    .card input { font-size:16px; }   /* iOS focus-zoom guard */
+    .hint { display:none; }           /* hint overlays the draw area on small screens */
+  }
+  #status b { color:var(--ink); }
+  #st-untag-wrap.on { color:var(--amber); }          /* attention when strokes aren't tagged yet */
+  #st-untag-wrap.on b { color:var(--amber); font-weight:700; }
+  .flash { transition:background .15s; }
+  .flash.ok { background:rgba(34,197,94,.22); }
+
+  #modal { position:fixed; inset:0; background:rgba(2,6,23,.7); display:flex; align-items:center;
+    justify-content:center; z-index:50; }
+  #modal.hidden { display:none; }
+  .card { background:var(--panel); border:1px solid #334155; border-radius:14px; padding:18px;
+    width:min(92vw,380px); }
+  .card h3 { margin:0 0 12px; font-size:16px; }
+  .card label { display:block; font-size:11px; color:var(--muted); margin:8px 0 4px; }
+  .card input { width:100%; background:#0f172a; border:1px solid #334155; color:var(--ink);
+    border-radius:8px; padding:9px 10px; font-size:14px; }
+  .card .row { display:flex; gap:8px; margin-top:14px; justify-content:flex-end; }
+  .card button { background:var(--panel2); color:var(--ink); border:1px solid #475569; border-radius:8px;
+    padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+  #save-gesture { background:#0e7490; border-color:var(--accent); color:#ecfeff; }
+  /* R1.6 — the friendly action picker (menu + optional describe-it AI) needs room */
+  #modal .card { max-height:92vh; overflow-y:auto; }
+  #modal .card.picker { width:min(94vw,560px); }
+  #g-action-host { margin-top:2px; }
+  #g-action-text { width:100%; background:#0f172a; border:1px solid #334155; color:var(--ink);
+    border-radius:8px; padding:9px 10px; font-size:14px; margin-top:6px; }
+  #modal label.row-lab { display:block; font-size:11px; color:var(--muted); margin:8px 0 4px; }
+  /* the Train hand-off banner must STAY hidden unless ?from=train — the inline
+     display:flex would otherwise beat the [hidden] attribute */
+  #from-train[hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <div class="title"><span class="dot"></span>Gesture Data-Lab<span class="ver" id="lab-ver" title="version — bumps +0.1 every change round">v1</span><small>record · tag · download</small></div>
+    <button id="btn-help" title="How to use this lab — guided tour">?</button>
+    <button id="btn-add" title="Define a new gesture">＋ Add</button>
+    <button id="btn-tick" title="Tag the latest untagged stroke as this gesture">✓ Mark</button>
+    <button id="btn-adopt" title="Tag ALL untagged strokes as the active gesture — nothing is lost">Adopt all</button>
+    <label class="autotick on" title="Every stroke you draw is auto-assigned to the active gesture"><input type="checkbox" id="chk-auto" checked> auto ✓</label>
+    <button id="btn-dl" title="Download EVERYTHING as one JSON file">⬇ .json</button>
+    <button id="btn-action" title="What should the ACTIVE gesture do? — pick a friendly action or describe it in plain words (no key names, no config)">✎ Action</button>
+    <button id="btn-implement" title="Make the ACTIVE gesture live on the controller — pushes its strokes into the saved gesture list (same store as ✋ Train)">⚡ Implement</button>
+    <button id="btn-clear" title="Wipe all recorded data from this device">✕</button>
+  </header>
+  <!-- hand-off from ✋ Train (?from=train): explains why we are here + way back -->
+  <div id="from-train" hidden
+       style="margin:0 12px 8px;padding:8px 10px;background:#164e63;border:1px solid var(--accent);border-radius:10px;font-size:12.5px;color:#e0f2fe;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <span>Opened from ✋ Train — record as many strokes as you like here (auto ✓ tags them), then tap <b>⚡ Implement</b> to make the active gesture live on the controller.</span>
+    <a href="index.html#train" style="color:var(--accent);font-weight:700;text-decoration:none;">← Back to Train</a>
+  </div>
+  <nav id="tabs"></nav>
+  <main>
+    <div id="canvas-wrap">
+      <canvas id="cv"></canvas>
+      <div class="hint" id="hint">draw any gesture — 1 to 10 fingers · scribbles &amp; taps fine</div>
+    </div>
+    <div id="status">
+      <span><b id="st-total">0</b> strokes</span>
+      <span id="st-untag-wrap"><b id="st-untag">0</b> untagged</span>
+      <span id="st-active">active: —</span>
+      <span><b id="st-ptr">0</b> fingers</span>
+      <span id="st-last">last —</span>
+      <span id="st-saved">saved</span>
+    </div>
+  </main>
+</div>
+
+<div id="modal" class="hidden">
+  <div class="card picker" id="modal-card">
+    <h3 id="modal-title">＋ New gesture</h3>
+    <div id="name-row">
+      <label for="g-name">Name it</label>
+      <input id="g-name" placeholder="e.g. Circle O / Video-trim right" autocomplete="off">
+    </div>
+    <label class="row-lab" id="action-row-lab">What should it do? — tap a friendly action, or describe it in plain words (no key names needed)</label>
+    <div id="g-action-host"></div>
+    <div class="row">
+      <button id="cancel-gesture">Cancel</button>
+      <button id="save-gesture">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="tour" role="dialog" aria-label="How to use the gesture lab">
+  <div id="tour-hole" class="hole"></div>
+  <div class="card">
+    <h3 id="tour-title"></h3>
+    <p id="tour-text"></p>
+    <div class="trow">
+      <button id="tour-skip" title="Skip the tour — won't auto-open again">Skip</button>
+      <span class="step" id="tour-step"></span>
+      <button id="tour-prev">‹ Prev</button>
+      <button id="tour-next">Next ›</button>
+    </div>
+  </div>
+</div>
+
+<script src="action-picker.js?v=R29"></script>
+<script>
+(() => {
+'use strict';
+const KEY = 'rc_gesture_lab_v1';
+// VERSION RULE (user direction): this lab shows a visible version — started at
+// v1, and EVERY user-facing change round bumps it +0.1 (v1.1, v1.2, …). Bump
+// LAB_VERSION here on each change round; the chip + exported JSON update from it.
+const LAB_VERSION = '1.6';
+const LAB_VERSION_LABEL = 'v' + LAB_VERSION.replace(/\.0$/, '');
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const DPR = Math.min(2, window.devicePixelRatio || 1);
+
+let state = { gestures: [], strokes: [], auto: true, activeId: null };
+let active = new Map();          // pointerId → {pid, pts:[[nx,ny,t]]}
+let curTraces = [];              // completed pointers of the in-progress stroke
+let strokeStart = 0, strokeCount = 0, prevStrokeEnd = 0;
+let lastStroke = null;
+
+function load() {
+  try { const j = JSON.parse(localStorage.getItem(KEY)); if (j && j.strokes) state = j; } catch (e) {}
+  if (!state.gestures) state.gestures = [];
+  if (!state.strokes) state.strokes = [];
+  if (state.auto === undefined) state.auto = true;
+  $('chk-auto').checked = state.auto;
+  syncAutoUI();
+  if (!state.activeId && state.gestures.length) state.activeId = state.gestures[0].id;
+}
+function save(msg) {
+  state.auto = $('chk-auto').checked;
+  localStorage.setItem(KEY, JSON.stringify(state));
+  if (msg) setStatus(msg); else flashSaved();
+}
+function flashSaved() {
+  const s = $('st-saved'); s.textContent = 'saved ✓';
+  setTimeout(() => { s.textContent = 'saved'; }, 900);
+}
+function syncAutoUI() {
+  $('chk-auto').closest('.autotick').classList.toggle('on', $('chk-auto').checked);
+}
+
+/* ----------------------------- gestures / tabs ---------------------------- */
+function uid() { return 'g' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36); }
+function renderTabs() {
+  const nav = $('tabs');
+  nav.innerHTML = '';
+  if (!state.gestures.length) {
+    const t = document.createElement('div');
+    t.className = 'tab dim'; t.textContent = 'no gestures yet — tap ＋ Add';
+    nav.appendChild(t); return;
+  }
+  state.gestures.forEach((g) => {
+    const t = document.createElement('div');
+    t.className = 'tab' + (g.id === state.activeId ? ' active' : '');
+    const n = state.strokes.filter(s => s.gestureId === g.id).length;
+    t.innerHTML = '<span>' + esc(g.name) + '</span><span class="n">' + n + '</span>';
+    t.addEventListener('click', () => { state.activeId = g.id; renderTabs(); renderStatus(); });
+    nav.appendChild(t);
+  });
+  $('st-active').textContent = 'active: ' + (activeGesture() ? activeGesture().name : '—');
+}
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function activeGesture() { return state.gestures.find(g => g.id === state.activeId) || null; }
+/* ---- action modal (R1.6) ------------------------------------------------
+ * ONE modal, two modes:
+ *   'new' = ＋ Add (name + action)  ·  'act' = ⚡ Implement needs an action
+ * The action step is the SAME friendly picker as the ✋ Trainer: a ready-made
+ * offline menu (no keys, no setup) + optional "describe it in plain
+ * words" through your own model endpoint. Exact hotkeys are optional, only
+ * under "Other ways (advanced)". */
+let pendingAction = null;      // object | string | null — what the picker chose
+let modalMode = 'new';
+let editGesture = null;        // gesture being given an action in 'act' mode
+let actAfter = null;           // callback after 'act' save (continues Implement)
+
+function mountActionPicker(existing) {
+  const host = $('g-action-host');
+  host.innerHTML = '';
+  const start = (existing && typeof existing === 'object')
+    ? JSON.parse(JSON.stringify(existing)) : null;
+  pendingAction = start;
+  if (window.RCActionPicker) {
+    RCActionPicker.mount(host, {
+      current: start,
+      onPick: (a) => { pendingAction = (a && typeof a === 'object') ? a : (a || null); },
+      freeText: (h, onStr) => {
+        const inp = document.createElement('input');
+        inp.id = 'g-action-text';
+        inp.placeholder = '…or type a combo yourself, e.g. Ctrl+I (advanced)';
+        inp.setAttribute('autocomplete', 'off');
+        inp.value = (typeof existing === 'string' && !/^\(?no action/i.test(existing)) ? existing : '';
+        inp.addEventListener('input', () => onStr(inp.value.trim() || null));
+        h.appendChild(inp);
+        if (inp.value) pendingAction = inp.value;
+      },
+    });
+  } else {
+    const inp = document.createElement('input');
+    inp.id = 'g-action-text';
+    inp.placeholder = 'e.g. Ctrl+I — Import · or tap spacebar';
+    inp.setAttribute('autocomplete', 'off');
+    inp.value = (typeof existing === 'string') ? existing : '';
+    inp.addEventListener('input', () => { pendingAction = inp.value.trim() || null; });
+    host.appendChild(inp);
+    pendingAction = inp.value.trim() || null;
+  }
+}
+function openModal(mode, gesture, after) {
+  modalMode = mode || 'new';
+  editGesture = gesture || null;
+  actAfter = after || null;
+  $('modal').classList.remove('hidden');
+  $('name-row').style.display = modalMode === 'act' ? 'none' : '';
+  $('modal-title').textContent = modalMode === 'act'
+    ? '⚡ What should “' + (gesture ? gesture.name : '') + '” do?'
+    : '＋ New gesture';
+  $('action-row-lab').textContent = modalMode === 'act'
+    ? 'Pick a friendly action, or describe it in plain words — no key names needed'
+    : 'What should it do? — tap a friendly action, or describe it in plain words (no key names needed)';
+  $('save-gesture').textContent = modalMode === 'act' ? '✓ Save & implement' : 'Save';
+  mountActionPicker(modalMode === 'act' && gesture ? gesture.action : null);
+  if (modalMode === 'new') setTimeout(() => $('g-name').focus(), 30);
+}
+function closeModal() { $('modal').classList.add('hidden'); modalMode = 'new'; editGesture = null; actAfter = null; }
+function addGesture() {
+  const name = $('g-name').value.trim();
+  if (!name) { $('g-name').focus(); return; }
+  if (!pendingAction) {
+    softStatus('pick what it should do first — tap a friendly action below (no setup needed)');
+    return;
+  }
+  // action = whatever the picker produced (menu object, AI object, or advanced
+  // free text) — the exact hotkey is NEVER required; no config.json involved.
+  const g = { id: uid(), name, action: pendingAction, created: Date.now() };
+  state.gestures.push(g); state.activeId = g.id;
+  // you just made a gesture to collect strokes FOR it → auto-tagging back ON,
+  // so every draw counts straight into it (nothing ever silently goes untagged)
+  $('chk-auto').checked = true; state.auto = true; syncAutoUI();
+  closeModal(); save('＋ added "' + name + '" — auto ✓ on, every stroke now counts to it');
+  renderTabs(); renderStatus();
+}
+function saveModalAction() {
+  if (modalMode !== 'act') { addGesture(); return; }
+  const g = editGesture;
+  if (!g) { closeModal(); return; }
+  if (!pendingAction) {
+    softStatus('pick what it should do first — tap a friendly action (no setup needed)');
+    return;
+  }
+  g.action = pendingAction;
+  save('✓ "' + g.name + '" → ' + describeAction(typeof pendingAction === 'object' ? pendingAction : parseLabAction(pendingAction)));
+  renderTabs();
+  const cb = actAfter;
+  closeModal();
+  if (cb) cb();
+}
+function softStatus(t) {
+  const s = document.getElementById('st-saved');
+  s.textContent = t;
+  setTimeout(() => { if (s.textContent === t) s.textContent = 'saved'; }, 2600);
+}
+$('btn-add').addEventListener('click', () => openModal('new'));
+$('save-gesture').addEventListener('click', saveModalAction);
+$('cancel-gesture').addEventListener('click', closeModal);
+$('g-name').addEventListener('keydown', e => { if (e.key === 'Enter') addGesture(); });
+
+/* --------------------------------- strokes -------------------------------- */
+function fmtMs(ms) { return ms < 1000 ? ms + 'ms' : (ms / 1000).toFixed(1) + 's'; }
+function completeStroke() {
+  const traces = curTraces; curTraces = [];
+  const now = Date.now();
+  // TIME ANALYSIS (user direction 2026-08-27): per-finger down/up/hold + travel,
+  // multi-finger stagger (finger 2 lands this long after finger 1), and the gap
+  // since the previous stroke ended — so the data teaches recognizers not just
+  // the SHAPE but how long it takes / how the fingers sequence. Data can be
+  // wiped later; the LOGIC is what's being learned.
+  let firstDown = Infinity, lastUp = -Infinity;
+  const tr = traces.map((t) => {
+    const pts = t.points;
+    const downMs = pts[0][2], upMs = pts[pts.length - 1][2];
+    if (downMs < firstDown) firstDown = downMs;
+    if (upMs > lastUp) lastUp = upMs;
+    let travel = 0;
+    for (let i = 1; i < pts.length; i++)
+      travel += Math.hypot((pts[i][0] - pts[i - 1][0]) * rect.width, (pts[i][1] - pts[i - 1][1]) * rect.height);
+    return { pid: t.pid, points: pts, downMs: Math.round(downMs), upMs: Math.round(upMs), holdMs: Math.round(upMs - downMs), travel: Math.round(travel) };
+  });
+  const st = {
+    id: 's' + now.toString(36),
+    ts: now,
+    pointerCount: traces.length,
+    durationMs: Math.round(now - strokeStart),
+    sincePrevMs: prevStrokeEnd ? Math.round(strokeStart - prevStrokeEnd) : null,
+    fingers: {
+      firstDownMs: Math.round(firstDown),
+      lastUpMs: Math.round(lastUp),
+      spanMs: Math.round(lastUp - firstDown),
+      staggerMs: tr.map((t) => Math.round(t.downMs - firstDown)),       // 0 = the first finger to land
+      maxStaggerMs: tr.length ? Math.round(Math.max(...tr.map((t) => t.downMs - firstDown))) : 0,
+      holdsMs: tr.map((t) => t.holdMs),
+      travel: tr.map((t) => t.travel),
+    },
+    canvas: { w: cv.clientWidth, h: cv.clientHeight, portrait: cv.clientHeight > cv.clientWidth, orientation: cv.clientHeight > cv.clientWidth ? 'portrait' : 'landscape' },
+    traces: tr,
+  };
+  prevStrokeEnd = now;
+  if (state.auto && activeGesture()) st.gestureId = state.activeId;
+  state.strokes.push(st);
+  lastStroke = st;
+  strokeCount++;
+  // live timing readout — the user always SEES the captured time, not just the JSON
+  const sinceTxt = st.sincePrevMs == null ? '' : ' · since prev ' + fmtMs(st.sincePrevMs);
+  const staggerTxt = st.pointerCount > 1 ? ' · stagger ' + st.fingers.maxStaggerMs + 'ms' : '';
+  $('st-last').textContent = 'last ' + st.durationMs + 'ms · ' + st.pointerCount + (st.pointerCount > 1 ? ' fingers' : ' finger') + staggerTxt + sinceTxt;
+  // feedback: show the LIVE count so the user always sees it IS counting up
+  const g = activeGesture();
+  const count = st.gestureId ? state.strokes.filter(s => s.gestureId === st.gestureId).length : 0;
+  save(st.gestureId
+    ? ('✓ ' + g.name + ' · ' + count + (count > 1 ? ' strokes' : ' stroke'))
+    : (g ? 'saved — auto OFF, stroke is UNTAGGED (tap Adopt all)' : 'saved ✓'));
+  renderTabs();      // ← live per-gesture badge refresh (was missing → count looked stuck)
+  renderStatus();
+}
+function tickLast() {
+  if (!activeGesture()) { setStatus('add a gesture first — tap ＋'); return; }
+  // tag the most recent untagged stroke; fall back to the very last stroke
+  let target = [...state.strokes].reverse().find(s => !s.gestureId) || (state.strokes.length ? state.strokes[state.strokes.length - 1] : null);
+  if (!target) { setStatus('no strokes yet — draw something'); return; }
+  target.gestureId = state.activeId;
+  save('✓ marked "' + activeGesture().name + '"');
+  renderTabs(); renderStatus();
+}
+// Adopt all — tags EVERY untagged stroke as the active gesture in ONE tap, so
+// nothing ever gets lost (drew 71 strokes with auto off? one tap counts all 71).
+function adoptAll() {
+  if (!activeGesture()) { setStatus('add a gesture first — tap ＋'); return; }
+  const untagged = state.strokes.filter(s => !s.gestureId);
+  if (!untagged.length) { setStatus('no untagged strokes to adopt'); return; }
+  untagged.forEach(s => s.gestureId = state.activeId);
+  save('＋ ' + untagged.length + ' untagged stroke' + (untagged.length > 1 ? 's' : '') + ' → "' + activeGesture().name + '"');
+  renderTabs(); renderStatus();
+}
+$('btn-adopt').addEventListener('click', adoptAll);
+function setStatus(t) {
+  $('st-saved').textContent = t;
+  setTimeout(() => { $('st-saved').textContent = 'saved'; }, 1400);
+}
+$('btn-tick').addEventListener('click', tickLast);
+
+/* ------------------------------ canvas events ----------------------------- */
+let rect = { left: 0, top: 0, width: 1, height: 1 };
+function updRect() { rect = cv.getBoundingClientRect(); }
+function resize() {
+  cv.width = Math.round(cv.clientWidth * DPR);
+  cv.height = Math.round(cv.clientHeight * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  updRect();
+  draw();
+}
+window.addEventListener('resize', resize);
+
+// normalize to the CANVAS rect (not the viewport) so the stored geometry is
+// exactly the gesture's shape — rotation/position-agnostic for analysis later
+function nx(x) { return rect.width ? (x - rect.left) / rect.width : 0; }
+function ny(y) { return rect.height ? (y - rect.top) / rect.height : 0; }
+function nowMs() { return (Date.now() - strokeStart); }
+
+cv.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  if (!active.size) { updRect(); strokeStart = Date.now(); strokeCount = 0; curTraces = []; lastStroke = null; draw(); }
+  if (active.size >= 10) return;               // cap at 10 fingers
+  try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+  active.set(e.pointerId, { pid: e.pointerId, pts: [[nx(e.clientX), ny(e.clientY), nowMs()]] });
+  $('st-ptr').textContent = active.size;
+});
+cv.addEventListener('pointermove', (e) => {
+  const p = active.get(e.pointerId);
+  if (!p) return;
+  e.preventDefault();
+  p.pts.push([nx(e.clientX), ny(e.clientY), nowMs()]);
+  draw();
+});
+function endPointer(e) {
+  const p = active.get(e.pointerId);
+  if (!p) return;
+  curTraces.push({ pid: p.pid, points: p.pts });   // bank this finger's path
+  active.delete(e.pointerId);
+  $('st-ptr').textContent = active.size;
+  draw();
+  if (!active.size) completeStroke();
+}
+cv.addEventListener('pointerup', endPointer);
+cv.addEventListener('pointercancel', endPointer);
+
+/* -------------------------------- drawing -------------------------------- */
+function draw() {
+  ctx.clearRect(0, 0, cv.clientWidth, cv.clientHeight);
+  // faint ink for the last completed stroke
+  if (lastStroke) {
+    ctx.strokeStyle = 'rgba(34,211,238,.18)'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    lastStroke.traces.forEach((t) => {
+      if (t.points.length < 2) return;
+      ctx.beginPath();
+      t.points.forEach(([x, y], i) => { const X = x * cv.clientWidth, Y = y * cv.clientHeight; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
+      ctx.stroke();
+    });
+  }
+  // bright ink for live fingers, one color per pointer
+  const hue = 160; let k = 0;
+  active.forEach((p) => {
+    ctx.strokeStyle = 'hsla(' + (hue + k * 40) + ',85%,60%,.9)'; k++;
+    ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    if (p.pts.length === 1) { // a finger resting — dot it
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.beginPath(); ctx.arc(p.pts[0][0] * cv.clientWidth, p.pts[0][1] * cv.clientHeight, 4, 0, Math.PI * 2); ctx.fill();
+    } else if (p.pts.length > 1) {
+      ctx.beginPath();
+      p.pts.forEach(([x, y], i) => { const X = x * cv.clientWidth, Y = y * cv.clientHeight; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
+      ctx.stroke();
+    }
+  });
+}
+
+/* ---------------------------------- status -------------------------------- */
+function renderStatus() {
+  $('st-total').textContent = state.strokes.length;
+  const g = activeGesture();
+  $('st-active').textContent = 'active: ' + (g ? g.name : '—');
+  const u = state.strokes.filter(s => !s.gestureId).length;
+  $('st-untag').textContent = u;
+  $('st-untag-wrap').classList.toggle('on', u > 0);   // amber attention when data is untagged
+}
+$('chk-auto').addEventListener('change', () => {
+  state.auto = $('chk-auto').checked;
+  syncAutoUI();
+  save(state.auto
+    ? 'auto ✓ on — every stroke counts to the active gesture'
+    : 'auto OFF — strokes stay UNTAGGED (use ✓ Mark or Adopt all)');
+});
+
+/* --------------------------- download everything --------------------------- */
+// v1.3: export is COMPACT — no pretty-print whitespace + coords rounded to 4
+// decimals (~0.07px on a 1000px canvas, far below touch noise). Pretty-printing
+// + full 16-decimal floats made a 128-stroke export ~616KB; this is ~6x smaller
+// with zero accuracy loss for the recognizer (points get resampled to 6px anyway).
+function compactStrokes(strokes) {
+  const r4 = (v) => Math.round(v * 1e4) / 1e4;
+  return strokes.map((s) => Object.assign({}, s, {
+    traces: s.traces.map((t) => ({
+      pid: t.pid,
+      points: t.points.map((p) => [r4(p[0]), r4(p[1]), Math.round(p[2] || 0)]),
+    })),
+  }));
+}
+$('btn-dl').addEventListener('click', () => {
+  const out = {
+    lab: { name: 'Touch Tools gesture data-lab', version: LAB_VERSION, label: LAB_VERSION_LABEL, exportedAt: Date.now(), format: 'compact' },
+    gestures: state.gestures,
+    strokes: compactStrokes(state.strokes),
+    stats: {
+      totalStrokes: state.strokes.length,
+      taggedStrokes: state.strokes.filter(s => s.gestureId).length,
+      untaggedStrokes: state.strokes.filter(s => !s.gestureId).length,
+      byGesture: Object.fromEntries(state.gestures.map(g => [g.name, state.strokes.filter(s => s.gestureId === g.id).length])),
+    },
+  };
+  const json = JSON.stringify(out);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'gesture-lab-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  setStatus('downloaded ' + out.stats.totalStrokes + ' strokes · ' + (json.length / 1024).toFixed(1) + ' KB');
+});
+
+/* ---------------------------------- clear --------------------------------- */
+$('btn-clear').addEventListener('click', () => {
+  if (!state.strokes.length && !state.gestures.length) { setStatus('nothing to clear'); return; }
+  if (!confirm('Delete ALL ' + state.strokes.length + ' recorded strokes from this device? This cannot be undone.')) return;
+  state.gestures = []; state.strokes = []; state.activeId = null;
+  localStorage.removeItem(KEY);
+  renderTabs(); renderStatus(); setStatus('cleared');
+  draw();
+});
+
+/* --------------------------- guided tour (?) ------------------------------ */
+const TOUR = [
+  { sel: '#btn-help', title: 'Welcome 👋', text: 'This is the Gesture DATA LAB — you teach it new gestures and record real finger strokes so the PC can learn them. This guide walks you through every button. Tap the dim area or Next to continue.' },
+  { sel: '#btn-add', title: '＋ Add — make your OWN gestures', text: 'Define a NEW gesture: give it a name (e.g. "Circle O"), then pick what it should do from the friendly list (Copy, Volume up, Open Chrome…) or describe it in plain words — no key names, no config needed. It becomes a tab below. No gesture yet? Start here.' },
+  { sel: 'label.autotick', title: 'auto ✓ — just draw, it counts', text: 'ON by default, and it switches back ON every time you add a gesture. While ON, every stroke you draw is instantly tagged to the ACTIVE gesture and its number climbs live. Turn it OFF only to collect strokes manually and tag them later.' },
+  { sel: '#btn-tick', title: '✓ Mark — tag the latest', text: 'Tags the most recent UNTAGGED stroke as the active gesture. Needed only when auto is OFF, or to fix one wrong tag.' },
+  { sel: '#btn-adopt', title: 'Adopt all — nothing is lost', text: 'Tags EVERY untagged stroke as the active gesture in ONE tap. Drew a lot with auto off (e.g. 71 strokes but the tab said 0)? This instantly counts them all.' },
+  { sel: '#tabs', title: 'Gesture tabs', text: 'Each gesture you added is a tab. Tap one to make it the ACTIVE gesture — the number is how many strokes are tagged as it, and it climbs as you draw. The active one is shown in the status bar ("active: …").' },
+  { sel: '#cv', title: 'Draw → record', text: 'Draw the gesture here with 1 to 10 fingers. Every finished stroke is saved: finger count, duration, and the exact path. Draw EXACTLY how you would on the controller — the data only learns what you record.' },
+  { sel: '#st-total', title: 'Status bar', text: 'Total strokes, untagged count (turns amber → tap Adopt all), the active gesture, live finger count, and per-stroke TIMING: duration, finger stagger (how long after the first finger the others land), and the gap since the previous stroke. All of it goes into the downloaded JSON.' },
+  { sel: '#btn-dl', title: '⬇ Download — share the data', text: 'Exports EVERYTHING as one COMPACT JSON file (gestures + strokes + per-stroke timing + stats incl. untagged count, stamped with the lab version). Coordinates are rounded to 4 decimals — the file is a fraction of the old size with no accuracy loss. Send that file to the PC — that is how the recognizer learns your gestures.' },
+  { sel: '#btn-action', title: '✎ Action — what it should do', text: 'Sets the ACTIVE gesture\'s action using the same friendly picker as ✋ Train: tap a ready-made action (works fully offline, no setup) or describe what you want in plain words and an optional connected model works it out. Exact shortcuts are optional, tucked under "Other ways".' },
+  { sel: '#btn-implement', title: '⚡ Implement — make it LIVE now', text: 'Pushes the ACTIVE gesture straight into the controller\u2019s saved-gesture list (same store as ✋ Train on the main page): every stroke is normalised and clustered, the action (menu pick, plain-language description, or "Ctrl+I" text) is resolved into a real action, and the gesture starts firing on the pad. If no action is set yet, this opens the friendly picker first. Tap it again later to UPDATE the same gesture.' },
+  { sel: '#btn-clear', title: '✕ Clear — fresh start', text: 'Deletes all recorded data from this device. Do it after you have downloaded what you need, to start a clean dataset.' },
+];
+let tourOn = false, tourIdx = 0;
+function tourOpen() { tourOn = true; tourIdx = 0; $('tour').classList.add('on'); tourShow(); }
+function tourClose() {
+  tourOn = false; $('tour').classList.remove('on');
+  localStorage.setItem('rc_lab_tour_done', '1');
+}
+function tourSkip() { tourClose(); }   // Skip = close + persist, so it never auto-opens again
+function tourNext() { tourIdx++; if (tourIdx >= TOUR.length) { tourClose(); return; } tourShow(); }
+function tourPrev() { if (tourIdx > 0) { tourIdx--; tourShow(); } }
+function tourShow() {
+  const s = TOUR[tourIdx];
+  const el = document.querySelector(s.sel);
+  if (!el) { tourNext(); return; }
+  const hole = $('tour-hole'), card = hole.nextElementSibling;
+  const vw = innerWidth, vh = innerHeight;
+  const place = () => {
+    const r = el.getBoundingClientRect();
+    const P = 8;
+    hole.style.left = (r.left - P) + 'px'; hole.style.top = (r.top - P) + 'px';
+    hole.style.width = (r.width + P * 2) + 'px'; hole.style.height = (r.height + P * 2) + 'px';
+    const ch = card.offsetHeight, cw = card.offsetWidth;
+    const left = Math.max(8, Math.min(vw - cw - 8, r.left + r.width / 2 - cw / 2));
+    let top;
+    if (r.bottom + P + 14 + ch <= vh) top = r.bottom + P + 14;
+    else top = Math.max(8, r.top - P - 14 - ch);
+    card.style.left = left + 'px'; card.style.top = top + 'px';
+  };
+  el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  requestAnimationFrame(place);
+  $('tour-title').textContent = s.title;
+  $('tour-text').textContent = s.text;
+  $('tour-step').textContent = (tourIdx + 1) + ' / ' + TOUR.length;
+  $('tour-prev').style.visibility = tourIdx === 0 ? 'hidden' : 'visible';
+  $('tour-next').textContent = (tourIdx === TOUR.length - 1) ? 'Done ✓' : 'Next ›';
+}
+$('btn-help').addEventListener('click', tourOpen);
+$('tour-next').addEventListener('click', tourNext);
+$('tour-prev').addEventListener('click', tourPrev);
+$('tour-skip').addEventListener('click', tourSkip);
+$('tour').addEventListener('click', (e) => { if (e.target.id === 'tour') tourNext(); });  // dim area = next
+window.addEventListener('keydown', (e) => { if (tourOn && e.key === 'Escape') tourClose(); });
+window.addEventListener('resize', () => { if (tourOn) tourShow(); });
+
+/* ------------------- ⚡ IMPLEMENT — make a lab gesture LIVE (R28.1) ----------
+ * ✋ Train hands off here (?from=train): the user records bulk strokes with
+ * auto ✓ tagging, then taps ⚡ Implement. That normalises every stroke of the
+ * ACTIVE gesture into the controller's 32-point unit templates (the SAME
+ * normalizeGesture / clustering logic as app.js — helpers ported verbatim
+ * below, keep in sync), parses the free-text action ("Ctrl+I", "launch
+ * notepad", "left click", …) into a real action object, and writes it into
+ * localStorage rc_profiles → profile.gestures.custom under id "lab_<gesture>"
+ * — so re-Implementing the same gesture UPDATES it instead of duplicating.
+ * The controller (same origin, same localStorage) picks it up on its next
+ * load / profile read and the gesture fires on the pad. */
+const TR_N = 32, TR_KEEP = 16, TR_MERGE = 0.07;
+
+function smoothTrace(pts, half) {
+  if (pts.length < 2 * half) return pts.slice();
+  const out = new Array(pts.length);
+  for (let i = 0; i < pts.length; i++) {
+    let sx = 0, sy = 0, n = 0;
+    for (let j = i - half; j <= i + half; j++) {
+      const k = Math.max(0, Math.min(pts.length - 1, j));
+      sx += pts[k][0]; sy += pts[k][1]; n++;
+    }
+    out[i] = [sx / n, sy / n];
+  }
+  return out;
+}
+function resamplePath(pts, step) {
+  if (!pts || pts.length < 2) return [];
+  const out = [pts[0].slice()];
+  let D = 0, prev = pts[0];
+  for (let i = 1; i < pts.length; i++) {
+    const p = pts[i];
+    const seg = Math.hypot(p[0] - prev[0], p[1] - prev[1]);
+    if (seg === 0) continue;
+    if (D + seg >= step) {
+      const f = (step - D) / seg;
+      out.push([prev[0] + (p[0] - prev[0]) * f, prev[1] + (p[1] - prev[1]) * f]);
+      let rest = seg - (step - D);
+      while (rest >= step) {
+        const last = out[out.length - 1];
+        out.push([last[0] + (p[0] - prev[0]) * (step / seg), last[1] + (p[1] - prev[1]) * (step / seg)]);
+        rest -= step;
+      }
+      D = rest;
+    } else {
+      D += seg;
+    }
+    prev = p;
+  }
+  return out;
+}
+function rdp(points, eps) {
+  if (points.length < 3) return points;
+  const a = points[0], b = points[points.length - 1];
+  const dx = b[0] - a[0], dy = b[1] - a[1], len2 = dx * dx + dy * dy;
+  let maxDist = -1, idx = -1;
+  for (let i = 1; i < points.length - 1; i++) {
+    const px = points[i][0], py = points[i][1];
+    let d;
+    if (len2 === 0) d = Math.hypot(px - a[0], py - a[1]);
+    else {
+      const t = Math.max(0, Math.min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / len2));
+      d = Math.hypot(px - (a[0] + t * dx), py - (a[1] + t * dy));
+    }
+    if (d > maxDist) { maxDist = d; idx = i; }
+  }
+  if (maxDist > eps && idx > 0) {
+    const left = rdp(points.slice(0, idx + 1), eps);
+    const right = rdp(points.slice(idx), eps);
+    return left.slice(0, -1).concat(right);
+  }
+  return [a, b];
+}
+// same as app.js normalizeGesture — lab points arrive 0..1 (canvas rect), so
+// they are scaled ×1000 first to pass the same px-scale size gates.
+function normalizeGesture(raw) {
+  if (!raw || raw.length < 8) return null;
+  const sm = smoothTrace(raw, Math.min(4, Math.max(2, Math.ceil(raw.length / 50))));
+  const rs = resamplePath(sm, 6);
+  if (rs.length < 6) return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const p of rs) {
+    if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0];
+    if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1];
+  }
+  const bw = maxX - minX, bh = maxY - minY;
+  const s = Math.max(bw, bh);
+  if (s < 24) return null;
+  const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+  const unit = rs.map((p) => [(p[0] - cx) / s, (p[1] - cy) / s]);
+  const sim = rdp(unit, 0.02);
+  if (sim.length < 4) return null;
+  let per = 0;
+  for (let i = 1; i < sim.length; i++) per += Math.hypot(sim[i][0] - sim[i - 1][0], sim[i][1] - sim[i - 1][1]);
+  if (per < 0.5) return null;
+  const fixed = resamplePath(sim, per / (TR_N - 1));
+  if (fixed.length < TR_N - 4) return null;
+  while (fixed.length < TR_N) fixed.push(fixed[fixed.length - 1].slice());
+  return fixed.slice(0, TR_N);
+}
+function gestureDist(a, b) {
+  let d = 0;
+  for (let i = 0; i < TR_N; i++) d += Math.hypot(a[i][0] - b[i][0], a[i][1] - b[i][1]);
+  return d / TR_N;
+}
+// same clustering as app.js condenseSamples — 100 lab strokes → ≤16 exemplars
+function condenseSamples(samples) {
+  if (!Array.isArray(samples)) return [];
+  const arr = samples.filter((s) => Array.isArray(s) && s.length === TR_N);
+  if (arr.length <= TR_KEEP) return arr;
+  const sums = [], counts = [], cents = [];
+  for (const s of arr) {
+    let bi = -1, bd = Infinity;
+    for (let i = 0; i < cents.length; i++) {
+      const d = gestureDist(s, cents[i]);
+      if (d < bd) { bd = d; bi = i; }
+    }
+    if (bi >= 0 && bd <= TR_MERGE) {
+      counts[bi]++;
+      for (let j = 0; j < TR_N; j++) { sums[bi][j][0] += s[j][0]; sums[bi][j][1] += s[j][1]; }
+      cents[bi] = sums[bi].map((p) => [p[0] / counts[bi], p[1] / counts[bi]]);
+    } else if (cents.length < TR_KEEP) {
+      cents.push(s.map((p) => p.slice()));
+      sums.push(s.map((p) => p.slice()));
+      counts.push(1);
+    } else {
+      let ni = 0, nd = Infinity;
+      for (let i = 0; i < cents.length; i++) { const d = gestureDist(s, cents[i]); if (d < nd) { nd = d; ni = i; } }
+      counts[ni]++;
+      for (let j = 0; j < TR_N; j++) { sums[ni][j][0] += s[j][0]; sums[ni][j][1] += s[j][1]; }
+      cents[ni] = sums[ni].map((p) => [p[0] / counts[ni], p[1] / counts[ni]]);
+    }
+  }
+  return cents;
+}
+// free-text action ("Ctrl+I", "launch notepad", "left click", "space") → real action
+function parseLabAction(str) {
+  const s = String(str || '').trim();
+  if (!s) return null;
+  let m = /^(?:launch|open|run)\s+(.+)$/i.exec(s);
+  if (m) return { launch: m[1].trim().toLowerCase().replace(/\.exe$/i, '') };
+  m = /^(left|right|middle)(?:\s+mouse)?\s*click$/i.exec(s);
+  if (m) return { click: m[1].toLowerCase() };
+  const ALIAS = { control: 'ctrl', cmd: 'win', command: 'win', option: 'alt', esc: 'esc', escape: 'esc', return: 'enter', del: 'delete', ins: 'insert', pgup: 'pageup', pgdn: 'pagedown', spacebar: 'space' };
+  const SPECIAL = new Set(['ctrl', 'shift', 'alt', 'win', 'enter', 'space', 'tab', 'esc', 'backspace', 'delete', 'insert', 'up', 'down', 'left', 'right', 'home', 'end', 'pageup', 'pagedown', 'volume_up', 'volume_down', 'volume_mute']);
+  const parts = (s.includes('+') ? s.split(/\s*\+\s*/) : s.split(/\s+/)).filter(Boolean);
+  const keys = parts.map((p) => ALIAS[p.toLowerCase()] || p.toLowerCase());
+  const ok = keys.length && keys.every((k) => SPECIAL.has(k) || /^[a-z0-9]$/.test(k) || /^f(?:[1-9]|1[0-2])$/.test(k));
+  if (ok) return { keys };
+  return { text: s };
+}
+function describeAction(a) {
+  if (!a) return 'no action';
+  if (a.label) return a.label;                                   // menu / AI friendly name
+  if (Array.isArray(a.seq)) return a.seq.map(describeAction).filter(t => t && t !== 'no action').join(' then ');
+  if (a.keys) return a.keys.join(' + ');
+  if (a.click) return a.click + ' click';
+  if (a.launch) return 'launch ' + a.launch;
+  if (a.text) return 'type "' + a.text + '"';
+  if (a.scroll) return 'scroll ' + (a.scroll[1] > 0 ? 'up' : 'down');
+  if (a.zoom) return 'zoom ' + (a.zoom > 0 ? 'in' : 'out');
+  return 'custom action';
+}
+// gesture.action may be: an OBJECT (friendly menu / describe-it AI pick, the
+// normal path) or a LEGACY STRING ("Ctrl+I"…) from old lab data. Returns a
+// real action object, or null when nothing usable is set — exact hotkeys are
+// NEVER required: null simply opens the picker at Implement time.
+function resolveLabAction(g) {
+  const a = g && g.action;
+  if (a && typeof a === 'object') {
+    try {
+      if (window.RCActionPicker) return RCActionPicker.validateAction(a);
+      return a;
+    } catch (e) { return null; }
+  }
+  const s = String(a || '').trim();
+  if (!s || /^\(?no action/i.test(s)) return null;
+  return parseLabAction(s);
+}
+function implementActive() {
+  const g = activeGesture();
+  if (!g) { setStatus('add a gesture first — tap ＋'); return; }
+  const tagged = state.strokes.filter((s) => s.gestureId === g.id);
+  if (!tagged.length) { setStatus('draw some strokes for "' + g.name + '" first (auto ✓ on)'); return; }
+  // R1.6 — the action step needs NO technical knowledge: if none is set (or it
+  // is the placeholder), open the SAME friendly menu / plain-language picker
+  // the Trainer uses, right here at Implement, then continue automatically.
+  const action = resolveLabAction(g);
+  if (!action) {
+    setStatus('what should "' + g.name + '" do? pick from the list or describe it — no key needed');
+    openModal('act', g, () => implementActive());
+    return;
+  }
+  const samples = [];
+  for (const st of tagged) {
+    const tr = Array.isArray(st.traces) ? st.traces : [];
+    if (!tr.length) continue;
+    let main = tr[0];
+    for (const t of tr) if ((t.points || []).length > (main.points || []).length) main = t;
+    const pts = (main.points || []).map((p) => [p[0] * 1000, p[1] * 1000]);  // unit → px-scale
+    const n = normalizeGesture(pts);
+    if (n) samples.push(n);
+  }
+  if (!samples.length) { setStatus('strokes too small — clear and draw bigger shapes, then Implement'); return; }
+  let profiles = {};
+  try { profiles = JSON.parse(localStorage.getItem('rc_profiles') || '{}'); } catch (e) { profiles = {}; }
+  const active = localStorage.getItem('rc_active') || 'Default';
+  if (!profiles[active]) {
+    setStatus('open the controller page on this device once first, then tap Implement again');
+    return;
+  }
+  const prof = profiles[active];
+  if (!prof.gestures || typeof prof.gestures !== 'object') prof.gestures = {};
+  if (!prof.gestures.custom || typeof prof.gestures.custom !== 'object') prof.gestures.custom = {};
+  prof.gestures.custom['lab_' + g.id] = {
+    name: g.name,
+    action,
+    samples: condenseSamples(samples),
+    count: samples.length,
+    from: 'gesture-lab',
+    implementedAt: Date.now(),
+  };
+  try {
+    localStorage.setItem('rc_profiles', JSON.stringify(profiles));
+  } catch (e) { setStatus('could not save — localStorage full or blocked'); return; }
+  const host = document.getElementById('st-saved');
+  host.textContent = '⚡ "' + g.name + '" is LIVE · ' + samples.length + ' samples → ' + describeAction(action);
+  setTimeout(() => { host.textContent = 'saved'; }, 3500);
+}
+$('btn-implement').addEventListener('click', implementActive);
+// ✎ Action — change what the ACTIVE gesture does, right here at the implement
+// step: same friendly menu + optional plain-language describe-it (no keys).
+$('btn-action').addEventListener('click', () => {
+  const g = activeGesture();
+  if (!g) { setStatus('add a gesture first — tap ＋'); return; }
+  openModal('act', g, null);
+});
+
+// ?from=train bridge banner (the wizard’s 🔬 hand-off) — unhide the hint bar
+if (/(?:\?|&)from=train(?:&|$)/.test(location.search)) {
+  const b = $('from-train');
+  if (b) b.hidden = false;
+}
+
+load();
+$('lab-ver').textContent = LAB_VERSION_LABEL;
+renderTabs();
+renderStatus();
+resize();
+// ✋ Train hand-off (?from=train) — point the user at the flow
+if (/[?&]from=train/.test(location.search)) {
+  document.getElementById('st-saved').textContent = 'from ✋ Train — draw with auto ✓, then tap ⚡ Implement';
+}
+if (!localStorage.getItem('rc_lab_tour_done')) tourOpen();   // first visit → show the guide
+
+// test/debug handle (headless suites) — live view of the recorder state + tour
+window.__lab = { get state() { return state; } };
+window.__tour = {
+  get on() { return tourOn; }, get idx() { return tourIdx; },
+  get steps() { return TOUR.length; },
+  get stepSel() { const t = TOUR[tourIdx]; return t ? t.sel : null; },
+  open: tourOpen, next: tourNext, prev: tourPrev, close: tourClose, skip: tourSkip,
+};
+})();
+</script>
+</body>
+</html>

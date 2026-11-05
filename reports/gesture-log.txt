@@ -1,0 +1,32 @@
+GESTURE LOG — what each line means (plain words):
+  time .......... when it happened (PC clock, hour:minute:second)
+  fingers ....... how many fingers were on the pad (1 / 2 / 3 / 4)
+  gesture ....... what the pad decided it was:
+                    tap = quick touch-and-lift (a click or key)
+                    scroll = fingers sliding together (moves the page / wheel)
+                    pinch = two fingers spreading apart or squeezing together (zoom)
+                    swipe-up / swipe-down / swipe-left / swipe-right = three
+                      fingers flicked together (Task View / show desktop /
+                      switch apps — the Windows laptop defaults)
+                    draw-O / draw-V / draw-letter-n = one-finger drawn shape
+                    hold / drag / unknown = anything else
+  separation .... for a pinch: how far apart the two fingers are, in screen dots
+                  (spread = bigger number, squeeze = smaller number);
+                  for a tap or swipe: what kind of touch it was
+  zoom signal ... for a pinch: did the pad ask the PC to zoom? none / zoom-IN / zoom-OUT
+  sent to PC ... exactly what reached the PC (right-click, wheel scroll, or
+                  hold-Ctrl + wheel-notch = the zoom instruction apps understand)
+  reached page? . always YES here — this page IS the server log, so anything
+                  written here arrived. If zoom shows "none", the pad swallowed
+                  it and the PC never got a chance.
+--------------------------------------------------------------------------------
+time=11:26:19 | fingers=1 | gesture=draw-letter-n | separation=28 dots drawn | zoom signal=none | sent to PC=fires on PC as: launch notepad | reached page?=YES
+time=11:26:21 | fingers=1 | gesture=draw-unrecognized | separation=19 dots drawn | zoom signal=none | sent to PC=nothing fires on the PC (no shape matched) | reached page?=YES
+time=11:26:22 | fingers=1 | gesture=draw-unrecognized | separation=22 dots drawn | zoom signal=none | sent to PC=nothing fires on the PC (no shape matched) | reached page?=YES
+time=11:26:23 | fingers=1 | gesture=draw-unrecognized | separation=16 dots drawn | zoom signal=none | sent to PC=nothing fires on the PC (no shape matched) | reached page?=YES
+time=11:26:24 | fingers=1 | gesture=draw-unrecognized | separation=19 dots drawn | zoom signal=none | sent to PC=nothing fires on the PC (no shape matched) | reached page?=YES
+time=11:26:24 | fingers=1 | gesture=draw-letter-n | separation=30 dots drawn | zoom signal=none | sent to PC=fires on PC as: launch notepad | reached page?=YES
+time=11:26:26 | fingers=1 | gesture=draw-unrecognized | separation=14 dots drawn | zoom signal=none | sent to PC=nothing fires on the PC (no shape matched) | reached page?=YES
+time=11:26:27 | fingers=1 | gesture=draw-unrecognized | separation=51 dots drawn | zoom signal=none | sent to PC=nothing fires on the PC (no shape matched) | reached page?=YES
+time=11:26:29 | fingers=1 | gesture=draw-unrecognized | separation=15 dots drawn | zoom signal=none | sent to PC=nothing fires on the PC (no shape matched) | reached page?=YES
+time=11:26:30 | fingers=1 | gesture=draw-unrecognized | separation=51 dots drawn | zoom signal=none | sent to PC=nothing fires on the PC (no shape matched) | reached page?=YES

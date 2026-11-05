@@ -1,0 +1,1290 @@
+/* Touch Tools — tablet client theme */
+:root {
+  --bg: #0b1120;
+  --panel: #131b2f;
+  --panel2: #182238;
+  --line: #263a5c;
+  --ink: #e5edf8;
+  --dim: #8aa0bf;
+  --accent: #22d3ee;
+  --accent2: #38bdf8;
+  --good: #34d399;
+  --warn: #fbbf24;
+  --bad: #f87171;
+  --gap: 6px;
+  --accent-ink: #06202a;
+  --accent-glow: rgba(34,211,238,.45);
+  --track-grad-a: #1a2745;
+  --track-grad-b: #0d1526;
+  --track-border: #2c3f68;
+  --track-dash: rgba(139,175,226,.22);
+  --track-tint: rgba(56,189,248,.10);
+  --pcb-a: #0f2138;
+  --pcb-b: #142a44;
+  --hkchip: rgba(56,189,248,.10);
+  --hkchip-line: rgba(56,189,248,.28);
+  --lb-bg: rgba(255,255,255,.06);
+  --lb-line: rgba(255,255,255,.08);
+  --lmbtn: #7a8bb5;
+  --lmbtn-on: #2c3f68;
+  --lmbtn-on-ink: #eaf1ff;
+  --tour-glow: rgba(34,211,238,.55);
+  --meta-bg: #0b1120;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0; height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  overscroll-behavior: none;
+}
+
+body {
+  height: 100dvh; display: flex; flex-direction: column;
+  overflow: hidden;
+  user-select: none; -webkit-user-select: none;
+  -webkit-touch-callout: none;   /* no long-press callout → holds/repeats stay intact */
+}
+
+button, input { font: inherit; color: inherit; }
+
+/* ------------------------------------------------------------ topbar ----- */
+#topbar {
+  height: 48px; flex: 0 0 48px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+#topbar::-webkit-scrollbar { display: none; }
+#topbar > * { flex-shrink: 0; }
+#conn { flex: 1 1 auto; min-width: 0; }
+#brand { font-size: 15px; white-space: nowrap; }
+#ver {
+  margin-left: 6px; font-size: 10px; vertical-align: 2px;
+  color: var(--accent); background: rgba(34,211,238,.12);
+  border: 1px solid var(--accent-glow); border-radius: 6px;
+  padding: 1px 6px; letter-spacing: .04em;
+}
+/* the user-facing build marker in the top bar, between ⚙ and ? — a bright,
+   unmistakable version so a stale build is obvious at a glance */
+#verTop {
+  flex: 0 0 auto;
+  font-size: 13px; font-weight: 800; letter-spacing: .03em;
+  color: var(--accent-ink); background: var(--accent);
+  border: 1px solid var(--accent); border-radius: 8px;
+  padding: 3px 9px;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+#conn { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--dim); }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: 0 0 auto; }
+.dot.good { background: var(--good); box-shadow: 0 0 8px var(--good); }
+.dot.warn { background: var(--warn); }
+.dot.bad  { background: var(--bad); }
+#latency { color: var(--dim); font-variant-numeric: tabular-nums; }
+/* sensitivity slider sits fixed, right above the trackpad */
+#senswrap { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; color: var(--dim); }
+#sens { width: 140px; accent-color: var(--accent); }
+#sens-val {
+  min-width: 44px; text-align: right;
+  font-variant-numeric: tabular-nums; color: var(--accent2);
+  font-weight: 600;
+}
+/* R27: Zoom slider — same family as Sens (same row, same accents). */
+#zoom-sens { width: 110px; accent-color: var(--accent); }
+#zoom-sens-lab { margin-left: 6px; }
+#zoom-sens-val {
+  min-width: 44px; text-align: right;
+  font-variant-numeric: tabular-nums; color: var(--accent2);
+  font-weight: 600;
+}
+/* round precision-mode toggle, sits before the "Sens" label */
+.chip-prec {
+  width: 30px; height: 30px; flex: 0 0 auto;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--panel2); color: var(--dim);
+  font-size: 15px; line-height: 1;
+  cursor: pointer; touch-action: manipulation;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.chip-prec.on {
+  background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.chip {
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--panel2); color: var(--ink);
+  padding: 6px 12px; cursor: pointer;
+  touch-action: manipulation; white-space: nowrap;
+}
+.chip:active { background: var(--line); }
+.chip.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.chip.danger { background: rgba(248,113,113,.12); border-color: rgba(248,113,113,.45); color: var(--bad); }
+.chip:disabled { opacity: .4; pointer-events: none; }
+
+/* ------------------------------------------------------------ layout ----- */
+#layout {
+  flex: 1; min-height: 0;
+  display: flex; gap: 0;
+}
+
+/* left: scrollable button bank */
+#bank {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+  padding: 8px 6px;
+}
+#bank-title { font-size: 10px; color: var(--dim); margin: 2px 4px 5px; text-transform: uppercase; letter-spacing: .08em; }
+/* R13.26 (bkp2): the bank tabs are now COMPACT — one horizontally-scrollable row
+   of small chips, the same style as the right-side editing-hotkey tabs — so the
+   left column can give its width to a WIDER touchpad while every tab stays
+   reachable. No tab is removed; they just scroll instead of wrapping. */
+#bank-tabs {
+  flex: 0 0 auto;
+  display: flex; gap: 4px;
+  overflow-x: auto; overflow-y: hidden; scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 0 6px;
+  padding-bottom: 2px;
+}
+#bank-tabs::-webkit-scrollbar { display: none; }
+.bbtn-tab {
+  flex: 0 0 auto;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel2); color: var(--ink);
+  min-height: 28px; padding: 4px 10px;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; touch-action: manipulation; white-space: nowrap;
+}
+.bbtn-tab.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+#bank-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; padding: 0 2px 10px; }
+.bsec { margin-bottom: 14px; }
+.bsec h4 { margin: 0 0 6px; font-size: 12px; color: var(--accent2); font-weight: 600; }
+.bgrid {
+  /* R13.25 (bkp2 only): Windows-Start-tile style — square buttons, 4 per row,
+     icon on top, small name below. Vertically scrollable via #bank-body.
+     R13.26: the bank column is now narrower (the trackpad grows left into its
+     space), so the tiles scale down with it — still 4 per row, nothing removed. */
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.bbtn {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  min-width: 0;
+  padding: 5px 2px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: linear-gradient(180deg, var(--panel2), var(--panel));
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px;
+  cursor: pointer; touch-action: manipulation;
+  box-shadow: 0 2px 0 rgba(0,0,0,.25);
+}
+.bbtn-ico { font-size: 20px; line-height: 1; }
+.bbtn-lbl {
+  font-size: 9px; font-weight: 600; color: var(--ink);
+  text-align: center; line-height: 1.15;
+  max-width: 100%;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.bbtn:active { background: var(--line); transform: translateY(1px); box-shadow: none; }
+.empty { color: var(--dim); font-size: 13px; }
+
+/* R13.26 (bkp2): SEARCH — one compact box above the tabs in BOTH the left bank
+   and the right editing-hotkey strip. Types a keyword (e.g. "chroma", "green
+   screen", "find", "duplicate") and filters that side's buttons live across ALL
+   tabs. Each tile also carries a tiny ✎ that edits its search keywords. */
+#bank-top, #hk-top { flex: 0 0 auto; display: flex; align-items: center; gap: 4px; }
+/* R13.44: mode toggles live INSIDE the search row (the row is wide enough) —
+   small, quiet when off; accent glow when armed. Tiles stay clean (no per-tile
+   ⭐/✎) unless a mode is armed — see body[data-pinmode]/[data-editmode]. */
+.searchmode {
+  flex: 0 0 auto; width: 28px; height: 28px; line-height: 1;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel2); color: var(--dim); font-size: 14px;
+  cursor: pointer; touch-action: manipulation;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.searchmode.on {
+  background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+.searchbox {
+  flex: 1 1 auto; min-width: 0; box-sizing: border-box;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: rgba(10,16,30,.75); color: var(--ink);
+  font-size: 12px; padding: 5px 10px;
+  outline: none; touch-action: manipulation;
+}
+.searchbox::placeholder { color: var(--dim); }
+/* ------------------------------------------------ R13.46 fav strips ------ */
+/* One-tap favorites directly below each search bar (above the tabs). A single
+   horizontally-scrollable chip row — compact, same on phone + tablet, never
+   wraps into the layout. display:none when empty (JS toggles .has). */
+.favstrip { flex: 0 0 auto; display: none; gap: 6px; overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch; padding: 2px 2px 4px; min-width: 0; }
+.favstrip::-webkit-scrollbar { display: none; }
+.favstrip.has { display: flex; }
+.favchip {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--accent-glow); border-radius: 10px;
+  background: linear-gradient(180deg, var(--panel2), var(--panel));
+  color: var(--ink); font-size: 12px; font-weight: 600;
+  min-height: 34px; padding: 4px 10px; cursor: pointer; touch-action: manipulation;
+  white-space: nowrap; max-width: 180px;
+}
+.favchip:active { background: var(--line); }
+.favchip .fic { font-size: 15px; line-height: 1; }
+.favchip .flb { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.favchip .fkey { font-size: 9px; color: var(--accent2); background: var(--hkchip);
+  border: 1px solid var(--hkchip-line); border-radius: 4px; padding: 0 4px; line-height: 14px; }
+.searchbox:focus { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-glow); }
+.tile-pen {
+  position: absolute; top: 2px; right: 2px; z-index: 3;
+  width: 16px; height: 16px; line-height: 16px;
+  border: none; background: transparent; border-radius: 4px;
+  color: rgba(160,185,220,.55); font-size: 10px;
+  cursor: pointer; touch-action: manipulation;
+}
+.tile-pen:active { background: rgba(255,255,255,.16); color: #fff; }
+/* ------------------------------------------------ R13.43 search overlay --- */
+/* Floating results panel — body-level fixed so shrunken panels, splitters and
+   rail overflow can never clip it. Hidden unless a query is active. Anchoring
+   (left/top/width/max-height) is set INLINE by JS from live rects so it hugs
+   the searching side and never covers the trackpad; the CSS only caps it.
+   z-order: above panels/splitters/scrim(29), below modals(50)/tour(80). */
+#search-scrim { position: fixed; inset: 0; z-index: 29; background: rgba(4,8,16,.35); display: none; }
+#search-scrim.open { display: block; }
+#search-overlay {
+  position: fixed; z-index: 30; display: none; flex-direction: column;
+  min-width: min(320px, calc(100vw - 16px)); max-width: calc(100vw - 16px);
+  background: var(--panel2); border: 1px solid var(--accent-glow); border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.55); overflow: hidden;
+}
+#search-overlay.open { display: flex; }
+.so-head { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--dim); }
+.so-head b { color: var(--ink); }
+#so-clear { margin-left: auto; width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); font-size: 15px; touch-action: manipulation; }
+.so-list { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; min-height: 0; }
+.so-group { margin: 0; padding: 6px 6px 8px; }
+.so-group > h4 { margin: 2px 4px 6px; font-size: 11px; color: var(--accent2); font-weight: 700; letter-spacing: .05em; }
+.so-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: linear-gradient(180deg, var(--panel2), var(--panel)); margin-bottom: 6px; touch-action: manipulation; text-align: left; }
+.so-row:active { background: var(--line); }
+.so-ico { flex: 0 0 auto; font-size: 18px; }
+.so-lbl { flex: 1 1 auto; min-width: 0; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.so-key { flex: 0 0 auto; font-size: 10px; color: var(--accent2); background: var(--hkchip); border: 1px solid var(--hkchip-line); border-radius: 5px; padding: 1px 6px; }
+.so-side { flex: 0 0 auto; font-size: 9px; color: var(--dim); }
+.so-empty { padding: 14px; color: var(--dim); font-size: 13px; }
+/* R13.44/45: per-tile ⭐/✎ exist ONLY while a mode is armed
+   (body[data-pinmode]/[data-editmode]) — tapping a tile then stars or edits
+   instead of firing. body[data-pinmode="bank"] arms bank tiles only, "hk" arms
+   hotkey tiles only, "both" arms both. R13.45: overlay rows show ⭐ ONLY while
+   Favorite mode is armed for their side (JS sets display:none otherwise). */
+.tile-pin, .tile-pen { display: none; }
+body[data-pinmode="bank"] #bank-body .tile-pin,
+body[data-pinmode="both"] #bank-body .tile-pin,
+body[data-pinmode="hk"] #hk-body .tile-pin,
+body[data-pinmode="both"] #hk-body .tile-pin { display: block; }
+body[data-editmode="bank"] #bank-body .tile-pen,
+body[data-editmode="both"] #bank-body .tile-pen,
+body[data-editmode="hk"] #hk-body .tile-pen,
+body[data-editmode="both"] #hk-body .tile-pen { display: block; }
+/* starred tiles + star toggle — ⭐ sits opposite ✎ so the two never overlap */
+.tile-pin { position: absolute; top: 2px; left: 2px; z-index: 3; width: 16px; height: 16px; line-height: 16px; border: none; background: transparent; border-radius: 4px; color: rgba(160,185,220,.55); font-size: 10px; cursor: pointer; touch-action: manipulation; }
+.tile-pin.on { color: var(--accent); }
+.so-pin { flex: 0 0 auto; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); font-size: 14px; touch-action: manipulation; }
+.so-pin.on { color: var(--accent); border-color: var(--accent); }
+
+/* right rail: buttons stacked on top, trackpad fills the bottom right */
+#rail {
+  /* OPPO Pad SE math: 16:10 landscape, rail takes a fixed column of the width.
+     R13: widened (620→720 cap) so the pad and the arrow keys grow.
+     R13.26 (bkp2): the rail takes MORE of the width (52→62vw, 720→1080 cap) so
+     the TRACKPAD extends LEFT into the space the compacted left bank frees up —
+     a wider pad = comfortable two-finger gestures (2-finger slide scroll,
+     2/3-finger tap clicks) right on the pad. Nothing else in the rail changes;
+     the pad's HEIGHT stays rail-driven (no vertical fluctuation). */
+  flex: 0 0 clamp(520px, 62vw, 1080px);
+  display: flex; flex-direction: column;
+  gap: 8px; padding: 10px;
+  border-left: 1px solid var(--line);
+  background: var(--panel);
+  min-height: 0;
+  overflow: hidden;
+}
+/* R13.27: the PC-screen stream (🖥 Show) eats vertical space at the top, so the
+   rail would crush the hotkey strip and clip the touchpad. While it's visible,
+   the whole right side becomes ONE vertically-scrollable block — hotkey strip,
+   button rows, arrows and the pad all keep their size and scroll together (the
+   tile grids keep their own horizontal scroll). body.stream-on toggled by applyStream. */
+body.stream-on #rail { overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+body.stream-on #rail::-webkit-scrollbar { width: 0; height: 0; display: none; }
+body.stream-on #rail-btns { flex: 0 0 auto; }
+
+#rail-btns {
+  /* grows to use the height the (now shorter) trackpad frees up — that space is
+     what makes the buttons bigger. Scrolls if a profile's rows are taller. */
+  flex: 1 1 auto; min-height: 0;
+  overflow-y: auto; scrollbar-width: thin;
+  display: flex; flex-direction: column; gap: 8px;
+}
+/* rows above the trackpad scroll LEFT/RIGHT — buttons grow to fill the space
+   the shorter pad frees up (capped so they never get absurdly tall) */
+#modrow, #majorrow, #padbtns {
+  display: flex; align-items: stretch; flex: 1 0 auto; max-height: 110px;
+  overflow-x: auto; overflow-y: hidden; scrollbar-width: thin;
+  flex-wrap: nowrap; -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+#modrow { gap: 8px; justify-content: flex-end; }  /* right-handed reach: modifiers hug the right edge */
+#majorrow { gap: 6px; }
+#padbtns { gap: 8px; justify-content: flex-start; }
+/* arrow cluster: inverted T, plus V / DG on the left and ⌫ DEL SPC on the right.
+   BULLETPROOF (R13.1): the keys are SHRINKABLE (flex: 0 1 auto, min-width 0)
+   capped at max-width — at the normal tablet sizes they render uniform at 86px,
+   but if the rail content is ever narrower than the cluster, the keys squeeze
+   evenly to fit instead of overflowing #rail's overflow:hidden and getting
+   clipped off-screen (the SPC / V / DG / DEL "half cut off" bug). */
+#arrowrow {
+  display: flex; flex-direction: column; align-items: stretch;
+  gap: 6px; flex: 0 0 auto;
+  width: 100%; min-width: 0;
+}
+.arrow-line { display: flex; gap: 8px; justify-content: center; flex: 0 0 auto; min-width: 0; }
+
+.key {
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--panel2); color: var(--ink);
+  min-height: 40px; padding: 4px 6px;
+  font-size: 12px; font-weight: 700; letter-spacing: .02em;
+  cursor: pointer; touch-action: manipulation;
+}
+.key:active { background: var(--line); }
+.key.on {
+  background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+/* uniform, symmetric rows — each key shares the row width equally; sizes are
+   monotonic so no button stands out (VIBE = "V", same square as the arrows) */
+/* R13.26 (bkp2): CONSISTENT sizing — the modrow keys (DG · M · SHIFT · Z · R)
+   were content-width (SHIFT made that row uneven); they are now a fixed uniform
+   width and BOTH key rows share the same height, so the permanent keys
+   (ESC TAB WIN ALT L / DG M SHIFT Z R) read as one symmetric set. */
+#modrow .key { flex: 0 0 68px; width: 68px; min-width: 68px; min-height: 50px; height: 50px; max-height: 50px; font-size: 14px; padding: 4px 6px; white-space: nowrap; }
+#majorrow .key { flex: 1; min-width: 56px; min-height: 50px; height: 50px; max-height: 50px; font-size: 14px; white-space: nowrap; }
+/* R13.1: uniform arrow/V/DG key — 86px at normal sizes, shrink-to-fit if the
+   rail is narrower (never clips: min-width 0 + flex 0 1 auto + max-width cap) */
+#arrowrow .key { flex: 0 1 auto; min-width: 0; width: 86px; max-width: 86px; min-height: 56px; font-size: 18px; padding: 2px 4px; }
+#padbtns .chip { flex: 1; min-width: 52px; min-height: 50px; max-height: 110px; font-weight: 700; font-size: 15px; }
+
+/* the trackpad — fills the area under the slider; L·M·R hold buttons flank it
+   as a 44px column (LEFT in landscape, RIGHT edge in portrait) */
+#pad-area {
+  /* content-sized: sizeTrackpad() pins the height to the pad's own height, so
+     the pad sits flush under the slider and freed height goes to #rail-btns. */
+  flex: 0 0 auto;
+  display: flex; flex-direction: row; gap: 8px;
+}
+/* hold column — each button shares the pad's exact height via flex:1 */
+#hold-col {
+  flex: 0 0 auto;
+  display: flex; flex-direction: column; gap: 8px;
+  width: 44px;
+}
+#hold-col .hold {
+  flex: 1; min-height: 42px;
+  border: 1px solid var(--line); border-radius: 14px;
+  background: var(--panel2); color: var(--ink);
+  font-size: 15px; font-weight: 700;
+  cursor: pointer; touch-action: manipulation;
+  /* every hold button is a flex container so the glyph centers perfectly. */
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+/* R13.6: all six hold buttons (L · M · R · SPC · ⏎ · ⌫) show in BOTH
+   orientations — the old R11 "M hidden in landscape" rule is gone. */
+#hold-col .hold:active { background: var(--line); }
+#hold-col .hold.on {
+  background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+/* R13.10: M DOUBLE-tap = PAN mode — green instead of the autoscroll light-blue.
+   While green the middle button is held, so dragging the pad pans the preview. */
+#hold-col .hold.pan {
+  background: #14532d; border-color: #22c55e; color: #d9f99d;
+  box-shadow: 0 0 12px rgba(34,197,94,.5);
+}
+
+#pad-wrap {
+  flex: 1; min-width: 0; min-height: 0;
+  display: flex; align-items: stretch; justify-content: stretch;
+}
+#trackpad {
+  position: relative;
+  border-radius: 26px;
+  background:
+    radial-gradient(120% 120% at 20% 15%, var(--track-tint), transparent 60%),
+    linear-gradient(160deg, var(--track-grad-a), var(--track-grad-b));
+  border: 1px solid var(--track-border);
+  box-shadow:
+    inset 0 2px 18px rgba(0,0,0,.55),
+    0 10px 30px rgba(0,0,0,.35);
+  touch-action: none;
+}
+#trackpad::after {
+  content: ""; position: absolute; inset: 8px;
+  border-radius: 18px;
+  border: 1px dashed var(--track-dash);
+  pointer-events: none;
+}
+#tp-hint {
+  /* R13.26: lifted above the new BOTTOM L·↕·R row so the hint never sits under it */
+  position: absolute; left: 10px; right: 10px; bottom: 50px;
+  text-align: center; font-size: 11px; color: rgba(160,185,220,.55);
+  pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* bkp2 (R13.22): a top button ROW overlays the pad — L click · ↕ scroll · R click,
+   one row of equal-width keys (like a laptop's trackpad buttons but at the TOP so
+   they are easy to thumb). R13.34: the ◯ gesture-mode circle LEADS the row (left
+   of L) so it sits with the click keys at the pad's upper edge. */
+#pad-clickrow {
+  position: absolute; top: 8px; left: 10px; right: 10px; z-index: 3;
+  display: flex; gap: 10px; justify-content: flex-end;
+}
+.pad-click, .scroll-dial {
+  /* R13.30f: sized to MATCH the right-edge hold buttons (L·M ≈ 44 wide) — the
+     user found 60×56 too big; 44×44 reads as the same button family, with a
+     comfortable 10px gap between them. */
+  flex: 0 0 auto; width: 44px; height: 44px; min-width: 44px;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--panel2); color: var(--ink);
+  font-size: 18px; font-weight: 700; line-height: 1;
+  cursor: pointer; touch-action: manipulation;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.pad-click:active, .scroll-dial:active { background: var(--line); }
+/* R13.26 (bkp2): the SAME L · ↕ · R row MIRRORED at the pad's BOTTOM edge — a
+   duplicate of the top row so either edge of the pad is reachable. It reuses
+   .pad-click / .scroll-dial button styles, so both rows look and act identically. */
+#pad-clickrow-b {
+  position: absolute; bottom: 8px; left: 10px; right: 10px; z-index: 3;
+  display: flex; gap: 10px; justify-content: flex-end;
+}
+/* the ↕ scroll toggle keeps its accent glow when ON */
+.scroll-dial.on {
+  background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+/* R13.34: the gesture-mode dial is the LEAD key of the top button row (left of
+   L) — no longer a floating absolute circle. Sized 44×44 round to match the row's
+   .pad-click keys. ON → the pad captures one-finger traces and fires the mapped
+   gesture (O = circle = Ctrl+I) on lift WITHOUT moving the cursor, so nothing in
+   the app gets hovered/triggered while you draw. Exclusive with scroll/autoscroll. */
+.gesture-dial {
+  flex: 0 0 auto; width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--panel2); color: var(--ink);
+  font-size: 18px; font-weight: 700; line-height: 1;
+  cursor: pointer; touch-action: manipulation;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.gesture-dial.on {
+  background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+
+/* -------------------------------------------------- type bar (bottom) ------ */
+#typebar {
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+}
+#typeInput {
+  flex: 1; min-width: 0;
+  background: var(--panel2); border: 1px solid var(--line);
+  border-radius: 10px; padding: 10px 12px; font-size: 16px; color: var(--ink);
+  outline: none;
+}
+#typeInput:focus { border-color: var(--accent); }
+#enterLbl {
+  font-size: 14px; color: var(--dim); display: flex; align-items: center; gap: 4px;
+  white-space: nowrap; cursor: pointer;
+}
+#enterLbl input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+/* -------------------------------------------------------------- modals --- */
+.modal {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(4,8,16,.72);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(3px);
+  padding: 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.modal.hidden { display: none; }
+.modal-box {
+  background: var(--panel2); border: 1px solid var(--line);
+  border-radius: 18px; padding: 22px; width: min(92vw, 420px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  max-height: 92vh; max-height: 90dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: auto;
+}
+.modal-box.wide {
+  width: min(94vw, 560px);
+  max-height: 86vh; max-height: 86dvh;
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: auto;
+}
+/* Train/Test inner scroll keeps Cancel/Save reachable without moving placement */
+#train-modal .modal-box.wide, #test-modal .modal-box.wide {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#train-modal .cz-foot, #test-modal .cz-foot {
+  position: sticky; bottom: 0; background: var(--panel2);
+  padding-top: 8px;
+}
+.modal-box h3 { margin: 0 0 8px; }
+.modal-box .muted { color: var(--dim); font-size: 13px; }
+.modal-box ul { font-size: 13px; line-height: 1.7; padding-left: 18px; }
+.modal-box code { background: #0b1120; padding: 1px 5px; border-radius: 5px; font-size: 12px; }
+#pinInput { width: 100%; margin: 10px 0 14px; padding: 10px 12px; font-size: 18px; letter-spacing: .4em;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; color: var(--ink); text-align: center; }
+#pinOk { width: 100%; }
+
+/* PC-side banner (only shows when opened on the PC itself) */
+#pc-banner {
+  background: linear-gradient(90deg, var(--pcb-a), var(--pcb-b));
+  border-bottom: 1px solid var(--accent);
+  padding: 10px 14px;
+  font-size: 14px;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+}
+#pc-banner code { background: #0b1120; padding: 2px 8px; border-radius: 6px; font-size: 13px; }
+#pc-banner .qrbox img { width: 120px; height: 120px; background: #fff; border-radius: 8px; padding: 4px; }
+
+/* R13: the stream STAGE is portrait-only (landscape keeps the full screen for
+   the controls), but the TOOLBAR (Show/Hide, Train/Test, quality) stays
+   visible in every orientation so landscape users can still open Train/Test
+   and reach stream controls. The stage itself shows only in the portrait
+   query below. */
+#streambar { display: flex; flex-direction: column; background: var(--panel); border-bottom: 1px solid var(--line); flex: 0 0 auto; }
+#streambar.off #stream-stage { display: none; }
+#stream-stage { display: none; position: relative; flex: 0 0 auto; background: #000; line-height: 0; }
+/* FIX: there was NO positive display rule for the stage anywhere — the base
+   display:none was the last word in EVERY orientation, so pressing 🖥 Show
+   switched the stream on and painted nothing. One orientation-neutral rule. */
+#streambar:not(.off) #stream-stage { display: block; }
+/* never let the strip eat the whole screen: the picture letterboxes in a cap.
+   :not(.fixed) so a height set by the drag splitter still wins. */
+#streambar:not(.off) #stream-stage:not(.fixed) #stream-img { max-height: 38dvh; object-fit: contain; }
+#stream-toolbar { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 6px 10px; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; max-width: 100%; min-width: 0; }
+#stream-toolbar::-webkit-scrollbar { display: none; }
+#stream-toolbar .chip { flex: 0 0 auto; padding: 5px 12px; font-size: 13px; white-space: nowrap; min-width: 0; }
+#stream-tip { flex: 1 1 auto; min-width: 60px; text-align: right; font-size: 11px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#stream-img { width: 100%; display: block; }
+
+/* R13.26 (bkp2): the editing hotkey strip. LANDSCAPE: hidden — the trackpad
+   fills the whole rail there, so there is no spare room and the layout is
+   unchanged. PORTRAIT (media block below): #rail-btns' button rows cluster at
+   the BOTTOM (justify-content:flex-end), leaving this strip the empty area ABOVE
+   them — a small scrollable tab row (unlimited categories) + a horizontally
+   scrollable grid of small square tiles, each showing the hotkey combo it fires. */
+#hotkeys { display: none; }
+
+/* portrait: same stacking (buttons above, trackpad bottom-right),
+   just more compact so nothing overlaps and the pad stays usable */
+@media (max-aspect-ratio: 3/4) {
+  /* OPPO Pad SE math: 16:10 portrait — rail a wider share, uniform rows stay flexed.
+     R13.26 (bkp2): rail share up (55→64vw, 440→880 cap) so the trackpad extends
+     LEFT into the compacted left bank — a wider pad for two-finger gestures.
+     The bank stays visible: its tabs are now a small scrollable chip row. */
+  #rail { flex: 0 0 clamp(380px, 64vw, 880px); gap: 6px; padding: 8px; }
+  #topbar { gap: 8px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  #topbar::-webkit-scrollbar { display: none; }
+  #topbar .chip, #topbar #linkmode { flex: 0 0 auto; }
+  #brand b { display: none; }
+  #sens { width: 80px; }
+  #zoom-sens { width: 70px; }
+  /* R13.26: portrait keeps the same CONSISTENT sizing — fixed-width modrow keys,
+     equal-height key rows (44px). */
+  #modrow .key { width: 56px; min-width: 56px; min-height: 44px; height: 44px; max-height: 44px; font-size: 12px; padding: 4px 4px; white-space: nowrap; }
+  /* R13.25: bank tiles keep the square 4-per-row grid in portrait too — the
+     aspect-ratio drives their size off the column width, no flex override needed. */
+  #majorrow .key { flex: 1; min-width: 44px; min-height: 44px; height: 44px; max-height: 44px; font-size: 12px; white-space: nowrap; }
+  #padbtns .chip { flex: 1; min-width: 40px; min-height: 44px; max-height: 110px; font-size: 14px; }
+  #arrowrow .key { width: 70px; max-width: 70px; min-height: 48px; font-size: 17px; }
+  /* R13.30e: min-height lowered so the six hold buttons COMPRESS to exactly the
+     pad's height on smaller screens — the old 44px floor forced the column
+     taller than the pad, shoving the ⌫ backspace button under the typebar. */
+  #hold-col .hold { min-height: 36px; font-size: 15px; }
+  #typebar { padding: 6px 10px; }
+  #typeInput { padding: 8px 10px; font-size: 15px; }
+
+  /* R11 portrait: the button rows cluster COMPACTLY at the bottom, right above
+     the arrows, so the freed rail height becomes one scrollable area on top
+     instead of a gap sitting between the buttons and the arrows. Visual order
+     (top → bottom): major row  ·  mod row  →  arrows. R13.6: the rows
+     are the same in both orientations — major = ESC·TAB·WIN·ALT·L, mod = M·SHIFT·Z·R. */
+  #rail-btns { justify-content: flex-end; }
+  #modrow, #majorrow, #padbtns { flex: 0 0 auto; }
+  #modrow   { order: 3; }   /* bottom-most — M·SHIFT·Z·R, right above the arrows */
+  #majorrow { order: 2; }   /* ESC TAB WIN ALT L */
+  #padbtns  { order: 1; }   /* top */
+  /* R13.6: rows are orientation-INDEPENDENT now — the mod row (M·SHIFT·Z·R) and
+     the major row (ESC·TAB·WIN·ALT·L) render identically in portrait and
+     landscape, so nothing here needs hiding per orientation. */
+  /* R11 flanking restored: portrait puts the trackpad on the LEFT edge and the
+     L·M·R hold column on the RIGHT edge (row-reverse flips the DOM order) */
+  #pad-area { flex-direction: row-reverse; }
+  #layout { position: relative; }
+  #rail { overflow: visible; }
+  /* R13.29: ONLY the trackpad's LEFT side is extended to the screen's left edge.
+     The pad-area stays exactly where it was (in the rail, original size), so
+     every button keeps its original place and size; only the trackpad surface
+     itself stretches from the left edge to just beside the hold column. The
+     bank scrolls behind it (sizeTrackpad pads the bank-body CONTENT). */
+  #pad-wrap {
+    position: absolute;
+    left: 0;
+    right: calc(44px + 8px);   /* hold column + its gap stay clear on the right */
+    bottom: 8px;               /* aligns with the in-flow pad-area (rail padding 8) */
+    z-index: 6;
+    justify-content: flex-start;
+  }
+  /* the hold column is pinned to the SAME bottom-right spot as the trackpad, so
+     the two stay together even when the rail scrolls (PC-screen stream on) */
+  #hold-col {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    z-index: 6;
+  }
+  /* R13.34: the gesture dial no longer floats — it leads the top pad row in
+     both orientations (same rule as landscape), so no portrait override. */
+  /* R13.6: no M hiding needed — all six hold buttons render in portrait too. */
+
+  /* R13: the PC screen stream strip sits at the VERY TOP of the tablet in
+     portrait only. The strip is hidden in landscape via the base rule above
+     (display:none) and shown here. ".off" (toggled by the 🖥 button) collapses
+     it entirely so it takes zero space when unwanted. The stage keeps the
+     image's natural height (16:9 for a 16:9 monitor) — no cropping. */
+  #streambar {
+    flex: 0 0 auto;
+    display: flex; flex-direction: column;
+    background: var(--panel); border-bottom: 1px solid var(--line);
+  }
+  /* R13 fix: the TOOLBAR (with 🖥 Show / ⛶ / ⚙) is ALWAYS visible in portrait —
+     only the video stage collapses when the stream is off, so there's always a
+     button to turn the stream back on. Zero-height stage = no wasted space. */
+  #streambar.off #stream-stage { display: none; }
+  #stream-toolbar { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 6px 10px; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; min-width: 0; }
+  #stream-toolbar::-webkit-scrollbar { display: none; }
+  #stream-toolbar .chip { padding: 5px 12px; font-size: 13px; flex: 0 0 auto; white-space: nowrap; min-width: 0; }
+  #stream-tip { flex: 1 1 auto; min-width: 60px; text-align: right; font-size: 11px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #stream-stage { position: relative; flex: 0 0 auto; background: #000; line-height: 0; }
+  #stream-img { width: 100%; display: block; }
+  /* R13.39: stream zoom — the stage CLIPS (fixed height, hidden overflow) and the
+     img TRANSFORMS inside it, so zoom/pan never push any other UI around.
+     transform-origin 0 0 + JS-computed translate keeps math exact. */
+  #stream-stage.zoomable { overflow: hidden; touch-action: none; }
+  #stream-stage.zoomable #stream-img {
+    transform-origin: 0 0;
+    will-change: transform;
+    user-select: none; -webkit-user-select: none;
+  }
+
+  /* R13.26: editing hotkey strip — fills the empty TOP of #rail-btns (the button
+     rows sit at the bottom there). Small switchable tabs (short names, unlimited
+     categories) + a horizontally-scrollable grid of small square tiles, each with
+     its icon, label and the hotkey combo it fires. */
+  #hotkeys {
+    flex: 1 1 auto; min-height: 0;
+    display: flex; flex-direction: column; gap: 6px;
+    overflow: hidden;
+  }
+  #hk-tabs {
+    flex: 0 0 auto;
+    display: flex; gap: 5px;
+    overflow-x: auto; overflow-y: hidden; scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  #hk-tabs::-webkit-scrollbar { display: none; }
+  .hk-tab {
+    flex: 0 0 auto;
+    border: 1px solid var(--line); border-radius: 8px;
+    background: var(--panel2); color: var(--ink);
+    padding: 5px 10px; font-size: 11px; font-weight: 600;
+    cursor: pointer; touch-action: manipulation; white-space: nowrap;
+  }
+  .hk-tab.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+  #hk-body {
+    flex: 1 1 auto; min-height: 0;
+    overflow-x: auto; overflow-y: hidden; scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+    /* R13.26 (bkp2): TWO buttons per column, stacked — ⏯ Play/Pause on top,
+       ⏮ Go start BELOW it, etc. Each horizontal scroll "screen" shows a pair,
+       so the strip stays compact and thumb-reachable. Columns scroll sideways
+       through unlimited categories/buttons. */
+    display: grid; grid-auto-flow: column;
+    grid-auto-columns: 72px;
+    grid-template-rows: repeat(2, 72px);
+    gap: 6px; align-content: center;
+    padding: 2px 2px 6px;
+  }
+  .hk {
+    position: relative;
+    border: 1px solid var(--line); border-radius: 10px;
+    background: linear-gradient(180deg, var(--panel2), var(--panel));
+    box-shadow: 0 2px 0 rgba(0,0,0,.25);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; padding: 3px 2px; min-width: 0;
+    cursor: pointer; touch-action: manipulation;
+  }
+  .hk:active { background: var(--line); transform: translateY(1px); }
+  .hk-ico { font-size: 17px; line-height: 1; }
+  .hk-lbl { font-size: 8.5px; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hk-group { font-size: 10px; color: var(--accent2); font-weight: 700; letter-spacing: .05em; grid-column: 1 / -1; margin: 0; }
+  .hk-key { font-size: 7.5px; font-weight: 600; color: var(--accent2); background: var(--hkchip); border: 1px solid var(--hkchip-line); border-radius: 4px; padding: 0 4px; line-height: 12px; white-space: nowrap; }
+  /* R13.30g: the '↩ Recent' hotkey tab = a proper VERTICAL listing. The shared
+     grid (#hk-body default: 2-per-column horizontal strip) + the `.hk-group`
+     header spanning `grid-column: 1 / -1` made recent tiles stagger DIAGONALLY
+     (header ate row 1 of the grid, ESC dropped to col1/row2, Stop/Paste landed
+     staggered). Recent gets its own flex-column stack: every tile same x, neat
+     y progression — icon · label · key · ✎ in a row. */
+  #hk-body.recent-list {
+    display: flex; flex-direction: column;
+    overflow-x: hidden; overflow-y: auto;
+    gap: 5px; align-content: unset; align-items: stretch;
+    padding: 4px 6px 8px;
+  }
+  #hk-body.recent-list .hk-group { grid-column: auto; flex: 0 0 auto; margin: 2px 0 2px 2px; }
+  #hk-body.recent-list .hk {
+    flex: 0 0 auto; width: auto; height: auto; min-height: 40px;
+    flex-direction: row; justify-content: flex-start; text-align: left;
+    gap: 8px; padding: 4px 8px; border-radius: 9px;
+  }
+  #hk-body.recent-list .hk-ico { flex: 0 0 auto; font-size: 16px; line-height: 1; }
+  #hk-body.recent-list .hk-lbl { flex: 1 1 auto; min-width: 0; font-size: 10px; text-align: left; }
+  #hk-body.recent-list .hk-key { flex: 0 0 auto; }
+  #hk-body.recent-list .tile-pen { position: static; flex: 0 0 auto; margin-left: 4px; }
+}
+
+/* ---------------------------------------------------- guided tour -------- */
+#tour {
+  position: fixed; inset: 0; z-index: 80;
+}
+#tour.hidden { display: none; }
+#tour-spot {
+  position: fixed; pointer-events: none;
+  border: 2px solid var(--accent);
+  border-radius: 14px;
+  box-shadow: 0 0 0 9999px rgba(4,8,16,.72), 0 0 26px var(--tour-glow);
+  transition: left .22s ease, top .22s ease, width .22s ease, height .22s ease;
+}
+#tour-bubble {
+  position: fixed;  /* left/top placed by layoutTour() — never overlaps the highlight */
+  width: min(92vw, 480px);
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.55);
+  z-index: 2;
+}
+/* dashed connector line from the bubble into the highlighted element */
+#tour-conn {
+  position: fixed; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 1;
+}
+#tour-conn line {
+  stroke: var(--accent); stroke-width: 2;
+  stroke-dasharray: 5 4; opacity: .9;
+}
+#tour-title { font-weight: 700; color: var(--accent); font-size: 15px; margin-bottom: 6px; }
+#tour-text { font-size: 13.5px; line-height: 1.6; color: var(--ink); }
+#tour-controls { display: flex; gap: 8px; align-items: center; margin-top: 14px; }
+#tour-progress { flex: 1; color: var(--dim); font-size: 12px; }
+/* searchable button guide inside the tour bubble */
+#tour-search {
+  width: 100%; margin-bottom: 10px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 12px; font-size: 14px; color: var(--ink); outline: none;
+}
+#tour-search:focus { border-color: var(--accent); }
+#tour-results { max-height: 190px; overflow-y: auto; margin-bottom: 10px; }
+#tour-results .tr-item { padding: 7px 8px; border-bottom: 1px solid rgba(38,58,92,.5); font-size: 13px; }
+#tour-results .tr-item b { color: var(--accent2); }
+#tour-results .tr-item .tr-desc { color: var(--dim); font-size: 12.5px; margin-top: 1px; }
+#tour-results .tr-none { color: var(--dim); font-size: 13px; padding: 8px; }
+#tour-step.hidden, #tour-controls.hidden { display: none; }
+
+/* -------------------------------------------------------- customize ------- */
+#btn-customize { margin-left: 4px; }
+.modal-box.czw {
+  width: min(96vw, 720px);
+  max-height: 92dvh;
+  display: flex; flex-direction: column;
+}
+.cz-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.cz-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.cztab {
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel2); color: var(--ink);
+  padding: 7px 14px; cursor: pointer;
+  font-size: 13px; font-weight: 600; touch-action: manipulation;
+}
+.cztab.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.cz-pane { overflow-y: auto; flex: 1; min-height: 0; padding-right: 4px; }
+.cz-pane.hidden { display: none; }
+.cz-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.cz-label { flex: 0 0 128px; font-size: 13px; color: var(--ink); }
+.cz-select, .cz-input {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 8px; color: var(--ink);
+  padding: 7px 9px; font-size: 13px; outline: none;
+}
+.cz-select { max-width: 210px; }
+.cz-input { flex: 1; min-width: 120px; }
+.cz-lab { flex: 0 0 92px; }
+.action-ed { display: inline-flex; gap: 6px; align-items: center; flex: 1; min-width: 0; }
+.action-ctx { display: inline-flex; flex: 1; min-width: 140px; }
+.action-ctx .cz-input { min-width: 0; }
+.action-ctx .cz-select { max-width: 170px; }
+.bank-sec { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 10px; margin-bottom: 10px; }
+.bank-sec-head { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.bank-sec-head .cz-input { flex: 1; }
+.cz-foot { display: flex; justify-content: flex-end; margin-top: 12px; }
+.cz-foot-btns { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.prof-list { margin: 10px 0; display: flex; flex-direction: column; gap: 6px; }
+.prof-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel2); }
+.prof-row.on { border-color: var(--accent); }
+.prof-row span { flex: 1; font-size: 13px; }
+
+/* ============ R13.11: LINK MODE — Wi‑Fi / Bluetooth toggle (topbar) ============ */
+/* Independent connection links: each mode owns its own WebSocket to its own
+ * host. Small segmented control so it never crowds the trackpad layout. */
+#linkmode { display: inline-flex; align-items: center; gap: 2px;
+  background: var(--lb-bg); border: 1px solid var(--lb-line);
+  border-radius: 12px; padding: 2px; margin: 0 6px; flex: 0 0 auto; }
+.lmbtn { background: transparent; border: none; color: var(--lmbtn);
+  font-size: 11px; font-weight: 600; letter-spacing: .02em; line-height: 1;
+  padding: 4px 8px; border-radius: 9px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.lmbtn.on { background: var(--lmbtn-on); color: var(--lmbtn-on-ink); }
+
+/* ============================================================ themes ===== */
+/* R13.35: 4-color theme system. :root carries the Blue defaults above. Each
+   [data-theme] block redefines the semantic color variables ONLY -- no layout,
+   geometry, or touch-logic rules -- so switching theme never moves a button,
+   pad, dial or cursor. Layout/geometry/input: bit-identical across themes. */
+
+html[data-theme="black"] {
+  --bg: #05070d;
+  --panel: #0b0f17;
+  --panel2: #11161f;
+  --line: #1e2736;
+  --ink: #e6edf6;
+  --dim: #7e90ad;
+  --accent: #8b9dc3;
+  --accent2: #b9c6e0;
+  --good: #3ce0a0;
+  --warn: #ffd24a;
+  --bad: #ff7a7a;
+  --accent-ink: #06080e;
+  --accent-glow: rgba(139,157,195,.45);
+  --track-grad-a: #10182a;
+  --track-grad-b: #070b14;
+  --track-border: #223047;
+  --track-dash: rgba(150,170,210,.18);
+  --track-tint: rgba(150,170,210,.08);
+  --pcb-a: #0a1422;
+  --pcb-b: #101d30;
+  --hkchip: rgba(185,198,224,.10);
+  --hkchip-line: rgba(185,198,224,.28);
+  --lmbtn: #8898bd;
+  --lmbtn-on: #223047;
+  --lmbtn-on-ink: #eaf1ff;
+  --tour-glow: rgba(139,157,195,.55);
+  --meta-bg: #05070d;
+}
+
+html[data-theme="purple"] {
+  --bg: #100a1c;
+  --panel: #181030;
+  --panel2: #211640;
+  --line: #34265c;
+  --ink: #ece6ff;
+  --dim: #9b86c9;
+  --accent: #c084fc;
+  --accent2: #a78bfa;
+  --good: #5ee0a8;
+  --warn: #ffd24a;
+  --bad: #ff8a8a;
+  --accent-ink: #1a0f2e;
+  --accent-glow: rgba(192,132,252,.45);
+  --track-grad-a: #241847;
+  --track-grad-b: #140c26;
+  --track-border: #43306e;
+  --track-dash: rgba(180,150,230,.18);
+  --track-tint: rgba(192,132,252,.10);
+  --pcb-a: #191030;
+  --pcb-b: #241645;
+  --hkchip: rgba(167,139,250,.10);
+  --hkchip-line: rgba(167,139,250,.28);
+  --lmbtn: #b09cd8;
+  --lmbtn-on: #43306e;
+  --lmbtn-on-ink: #f0e8ff;
+  --tour-glow: rgba(192,132,252,.55);
+  --meta-bg: #100a1c;
+}
+
+html[data-theme="yellow"] {
+  --bg: #16120a;
+  --panel: #1f1a10;
+  --panel2: #2a2316;
+  --line: #4a3d1f;
+  --ink: #f6ecd6;
+  --dim: #c9b47a;
+  --accent: #fbbf24;
+  --accent2: #f59e0b;
+  --good: #4ade80;
+  --warn: #fde047;
+  --bad: #fb7185;
+  --accent-ink: #2a1c05;
+  --accent-glow: rgba(251,191,36,.5);
+  --track-grad-a: #2c2412;
+  --track-grad-b: #18130a;
+  --track-border: #5a4a26;
+  --track-dash: rgba(230,200,130,.18);
+  --track-tint: rgba(251,191,36,.10);
+  --pcb-a: #1c1710;
+  --pcb-b: #281f12;
+  --hkchip: rgba(245,158,11,.12);
+  --hkchip-line: rgba(245,158,11,.30);
+  --lmbtn: #cbb878;
+  --lmbtn-on: #5a4a26;
+  --lmbtn-on-ink: #fff8e0;
+  --tour-glow: rgba(251,191,36,.55);
+  --meta-bg: #16120a;
+}
+
+/* ----------------------------------------------- theme picker (R13.35) --- */
+/* A small fixed card with 4 circular swatches. position:fixed so it never
+   affects the page layout/geometry. z-index sits above the tour (80). */
+#theme-btn { font-size: 16px; }
+#theme-popup {
+  position: fixed; top: 56px; right: 12px; z-index: 90;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 12px;
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.55);
+  min-width: 168px;
+}
+#theme-popup.hidden { display: none; }
+.tsw {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 8px 6px; cursor: pointer;
+  background: var(--panel); touch-action: manipulation;
+}
+.tsw:active { background: var(--line); }
+.tsw .dot {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.18);
+}
+.tsw .nm { font-size: 11px; font-weight: 600; color: var(--ink); }
+.tsw.on .dot { box-shadow: 0 0 0 2px var(--accent), 0 0 12px var(--accent-glow); }
+.tsw.on .nm { color: var(--accent); }
+
+/* ============================ R13.42 narrow-width responsive ================ */
+/* Aspect-ratio alone can't save small phones: a 360×640 portrait phone IS
+   portrait (bank+rail side-by-side) but the rail's 380px floor + bank minimum
+   exceed 360px. Width queries stack the layout instead: bank becomes a short
+   top strip, rail goes full-width below it. Tablet/desktop rules above win at
+   wider viewports — this block only NARROWS things, never widens.
+   R13.42b (user): the 349px refinement lives BELOW this block — here the
+   stacking the user confirmed "absolutely fine" stays at 560px. */
+@media (max-width: 560px) {
+  #layout { flex-direction: column; }
+  #bank { flex: 0 0 auto; max-height: 30dvh; border-bottom: 1px solid var(--line); }
+  #rail {
+    flex: 1 1 auto; min-height: 0; min-width: 0; width: 100%;
+    border-left: none; border-top: none;
+  }
+  /* topbar: keep brand + status, collapse the rest into a scrollable row */
+  #topbar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 6px; padding: 0 8px; -webkit-overflow-scrolling: touch; }
+  #topbar::-webkit-scrollbar { display: none; }
+  #topbar .chip { flex: 0 0 auto; font-size: 12px; padding: 5px 9px; }
+  #brand { font-size: 13px; flex: 0 0 auto; }
+  #conn { flex: 0 0 auto; min-width: 0; }
+  #status { display: none; }   /* dot stays, text goes — room for the chips */
+  #latency { display: none; }
+  #typebar { flex-wrap: wrap; }
+  #typeInput { flex: 1 1 100%; font-size: 16px; }   /* iOS focus-zoom guard */
+  .modal-box, .modal-box.wide, .modal-box.czw { width: min(96vw, 720px); }
+}
+/* very small phones: bank tiles drop 4→3→2 per row so labels stay legible */
+@media (max-width: 420px) {
+  .bgrid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 340px) {
+  .bgrid { grid-template-columns: repeat(2, 1fr); }
+}
+/* the mobile utility strip is display:none everywhere — the stacked-450px query shows it */
+#mutil { display: none; }
+/* ------------------------------------------------- panel splitter (R13.42i) -- */
+/* The drag handle between the button panel and the lower section. Hidden at
+   every width UNLESS the stacked mobile query shows it — tablet/desktop keep
+   their fixed side-by-side layout, untouched. */
+/* ------------------------------------------------ R13.42k stream splitter --- */
+/* Base: hidden EVERYWHERE (tablet/desktop, stream-off, wide layouts) — the
+   stacked-mobile + stream-on query below is the ONLY rule that shows it. */
+#streamsplit { display: none; }
+/* A dragged stage becomes a clipped box with a contained image — the zoom
+   transform (on #stream-img) is untouched, so pinch/pan keep working; the
+   clamp reads live client sizes. Clearing .fixed restores aspect-driven. */
+#stream-stage.fixed { overflow: hidden; }
+#stream-stage.fixed #stream-img { width: 100%; height: 100%; object-fit: contain; }
+/* ------------------------------------------------- panel splitter (R13.42i) -- */
+/* ============================ R13.42 narrow-width responsive ================ */
+/* ---- R13.42e: one-thumb mobile strip (≤450px: the real phone band) ---------
+   The 349px floor fired on NO real device — most phones report 360–430 CSS px,
+   so the strip never appeared and the pad kept its buttons. The boundary is now
+   450px: every phone gets [sens+◈ LEFT | ◯·L·↕·R RIGHT] above a CLEAN pad
+   (top row fully removed from layout, bottom mirror row gone). Tablet/desktop
+   (incl. the 618px tablet band) never match this query: untouched. */
+/* R13.42j: the phone strip fires ONLY in the stacked layout (narrow aspect —
+   phones stack via the 560px rule or portrait squeeze). Side-by-side tablets
+   (wide aspect, e.g. the user's portrait tablet at ≤450px CSS width) keep
+   their ORIGINAL pad + sens row: no duplicate strip, no hidden in-pad rows.
+   The aspect-ratio arm mirrors the portrait media block (3/4) so the two can
+   never disagree about which layout is showing. */
+@media (max-width: 450px) and (max-aspect-ratio: 3/4) {
+  #mutil {
+    display: flex; align-items: center; gap: 8px;
+    flex: 0 0 auto; width: 100%; min-width: 0;
+    padding: 2px 2px 0;
+  }
+  #mutil-sens {
+    flex: 0 1 auto; min-width: 0;
+    display: flex; align-items: center; gap: 4px;
+  }
+  #mutil-sens .chip-prec { width: 26px; height: 26px; font-size: 13px; }
+  #m-sens { width: 64px; accent-color: var(--accent); }
+  #mutil-btns {
+    flex: 1 1 auto; min-width: 0;
+    display: flex; align-items: center; justify-content: flex-end; gap: 6px;
+  }
+  /* same family as the pad keys, one step smaller for the narrow rail */
+  #mutil-btns .pad-click, #mutil-btns .scroll-dial, #mutil-btns .gesture-dial {
+    width: 38px; height: 38px; min-width: 38px; font-size: 16px;
+  }
+  #mutil-btns .gesture-dial { border-radius: 50%; }
+  /* R13.42e: original sens row stays HIDDEN on mobile (mini owns it).
+     display:none (not visibility) — zero box, zero duplicate, and
+     sizeTrackpad skips its height (see the mobile gate in app.js). */
+  #senswrap { display: none !important; }
+  /* in-pad rows FULLY removed from the pad: top row display:none (no box, no
+     taps — the pad is clean glass), bottom mirror row gone */
+  #pad-clickrow { display: none !important; }
+  #pad-clickrow-b { display: none !important; }
+  /* R13.42d: the ⌫ hold column must NEVER clip — the portrait rule pins it
+     absolute (right:8/bottom:8) inside a 380px-floor rail that overflows a
+     ≤349px viewport, so the rightmost column slides off-screen. Unpin it into
+     the pad-area flow (static, natural height) and let it size to the pad via
+     the existing sizeTrackpad height (pa.style.height). The pad keeps its
+     overlay extension — only the column joins the flow. */
+  /* R13.42g: mobile rail = ONE in-flow vertical scroll column. Measured
+     (390px): rail-btns crushed to 26px (rows clipped, start-overflow
+     unreachable = "fixed not scrollable") and hold content 244px in a 203px
+     box (⌫ unreachable). So: rail scrolls vertically, rail-btns takes its
+     natural height (each row keeps its own sideways swipe), pad-wrap +
+     hold-col go static in-flow (pad left, L·M·R·SPC·⏎·⌫ right edge via the
+     portrait row-reverse), hold buttons sized to fit so ⌫ needs no scroll. */
+  #rail { overflow-y: auto; }
+  #rail-btns { flex: 0 0 auto; justify-content: flex-start; overflow: visible; }
+  #pad-wrap { position: static; left: auto; right: auto; }
+  #hold-col {
+    position: static; z-index: auto;
+    flex: 0 0 40px; width: 40px; align-self: stretch;
+    overflow-y: auto; scrollbar-width: none;
+  }
+  #hold-col::-webkit-scrollbar { display: none; }
+  #hold-col .hold { min-height: 26px; font-size: 13px; }
+  /* R13.42e: arrow rows keep their size AND scroll — fit would shrink keys
+     below tap comfort and the user explicitly wants scroll back. Scroll is
+     horizontal-only with hidden scrollbars; keys keep min 56px so taps land. */
+  #arrowrow { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  #arrowrow::-webkit-scrollbar { display: none; }
+  .arrow-line { gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .arrow-line::-webkit-scrollbar { display: none; }
+  /* R13.42g2: the portrait rule sets 70px keys (5×70+4×6=374) but the mobile
+     rail is only ~359 wide → 15px stranded. 62px keys (5×62+24=334) fit. */
+  #arrowrow .key { flex: 0 0 auto; width: 62px; min-width: 56px; }
+  /* R13.42f: rows must SCROLL, not strand keys off-screen. justify-content
+     flex-end/center + overflow-x:auto pushes the overflow off the START edge
+     with no way to swipe back to it (DG… on the left). flex-start sends the
+     overflow right = swipeable. modrow basis 68→52px so all five fit a 360px
+     rail, scroll as fallback. */
+  #modrow { justify-content: flex-start; }
+  #modrow .key { flex: 0 0 52px; width: 52px; min-width: 52px; }
+  #majorrow { justify-content: flex-start; }
+  #majorrow .key { flex: 1 1 44px; min-width: 44px; }
+  .arrow-line { justify-content: flex-start; }
+  /* R13.42d: editing-hotkey tiles go VERTICAL on mobile — 4 columns × N rows
+     (same 2-row pair look, but the strip scrolls DOWN like the bank instead of
+     sideways, so 4×2 = 8 tiles show at once). Bank-family type (20px icon /
+     9px label, key chip dropped — the full combo stays in the tile's title
+     tooltip) so they read as the same button family, not a shrunken strip.
+     The ✎ keeps its corner slot. */
+  #hk-body {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: none;
+    grid-auto-rows: minmax(64px, auto);
+    overflow-x: hidden; overflow-y: auto;
+  }
+  #hk-body .hk { padding: 5px 2px; gap: 3px; }
+  #hk-body .hk-ico { font-size: 20px; }
+  #hk-body .hk-lbl { font-size: 9px; }
+  #hk-body .hk-key { display: none; }
+  #hk-body .hk-group { grid-column: 1 / -1; }
+  /* R13.42h: typebar fits ONE line — input + Live + ⏎ + Send + ✕ share a row.
+     (The 560 rule wraps the input full-width; nowrap + slim chips undo that.
+     Input keeps 16px so iOS never focus-zooms.) */
+  #typebar { flex-wrap: nowrap; gap: 4px; padding: 6px 8px; }
+  #typeInput { flex: 1 1 auto; min-width: 0; font-size: 16px; padding: 6px 8px; }
+  #typebar .chip { flex: 0 0 auto; font-size: 12px; padding: 5px 7px; }
+  #enterLbl { flex: 0 0 auto; font-size: 12px; }
+  /* R13.42h: custom-bank tiles go COMPACT — 5 per row, tight gaps, smaller
+     type — so the middle panel grabs less vertical length and the lower
+     section (rows + pad) gets the room. Bank strip 30→24dvh. */
+  #bank { max-height: 24dvh; padding: 6px 4px; }
+  #bank-title { margin: 0 4px 3px; }
+  .bgrid { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .bbtn { padding: 3px 2px; gap: 2px; border-radius: 8px; }
+  .bbtn-ico { font-size: 16px; }
+  .bbtn-lbl { font-size: 8px; }
+  .bsec { margin-bottom: 8px; }
+  .bsec h4 { font-size: 11px; margin: 0 0 4px; }
+  /* R13.42i: the splitter is a full-width grab bar between the stacked panels —
+     tall touch target, visible grip, resize cursor. flex:0 0 auto so it never
+     stretches; position relative + z-index so it stays tappable even if the
+     panels scroll under it. */
+  #banksplit {
+    display: flex; align-items: center; justify-content: center;
+    flex: 0 0 auto; width: 100%; min-height: 26px; padding: 6px 0;
+    touch-action: none; cursor: ns-resize; z-index: 5;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    background: var(--panel);
+  }
+  #banksplit span {
+    width: 64px; height: 5px; border-radius: 3px;
+    background: var(--dim); opacity: .7;
+  }
+  #banksplit.on span { background: var(--accent); opacity: 1; }
+  /* R13.42k: the stream splitter shows ONLY when stacked-mobile AND the stream
+     is active (body.stream-on is set by applyStream solely in that state).
+     In-flow with a 4px marginal gap under the screen — never overlaps the
+     display, never steals pinch/pan (it is a SIBLING of the stage, not a
+     child). Stream-off collapses it to zero via the base display:none. */
+  body.stream-on #streamsplit {
+    display: flex; align-items: center; justify-content: center;
+    flex: 0 0 auto; width: 100%; min-height: 26px; padding: 6px 0; margin-top: 4px;
+    touch-action: none; cursor: ns-resize; z-index: 5;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    background: var(--panel);
+  }
+  body.stream-on #streamsplit span {
+    width: 64px; height: 5px; border-radius: 3px;
+    background: var(--dim); opacity: .7;
+  }
+  body.stream-on #streamsplit.on span { background: var(--accent); opacity: 1; }
+}
+#streambar.off ~ #streamsplit, body:not(.stream-on) #streamsplit { display: none !important; }
+/* phone (≤560px): already-stacked layout also gets the smaller hotkey tiles so
+   the strip never looks oversized on a narrow rail */
+@media (max-width: 560px) {
+  #hk-body { grid-auto-columns: 62px; grid-template-rows: repeat(2, 62px); }
+}
+/* phone: the ~8.5px/7.5px tile type was sized for the tablet's fat 72px cells —
+   on the narrower tiles the label/key chrome SHOWS MULTIPLE stacked columns of
+   one-tile artifacts. Shrink to match the smaller cells. */
+@media (max-width: 560px) {
+  #hk-body .hk-ico { font-size: 15px; }
+  #hk-body .hk-lbl { font-size: 8px; }
+  #hk-body .hk-key { font-size: 7px; padding: 0 3px; line-height: 11px; }
+}
+
+/* portrait fallback: top-aligned scrollable Train/Test sheet on phones/tablets */
+@media (max-aspect-ratio: 3/4) {
+  .modal { align-items: flex-start; }
+  .modal-box.wide { width: min(96vw, 560px); max-height: 86dvh; max-height: 86vh; }
+}
+
+/* ---------------------------------------------------- gesture trainer (R28) */
+#tr-canvas, #te-canvas {
+  display: block; width: 100%; height: 200px; max-height: 32dvh;
+  flex: 0 0 auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  touch-action: none; cursor: crosshair; margin-bottom: 6px;
+}
+.tr-progress { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+.tr-action { display: block; width: 100%; }
+.tr-action .action-ed { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tr-testout { font-size: 13px; color: var(--dim); }
+/* R28.1: TEST verdict colours — green hit / red miss, always scannable */
+.tr-testout.te-ok { color: var(--good); font-weight: 700; }
+.tr-testout.te-no { color: var(--bad); font-weight: 600; }
+.tr-list { display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto; }
+.tr-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 6px 10px; font-size: 13px; color: var(--ink);
+}
+.tr-item span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tr-msg { min-height: 18px; font-size: 13px; font-weight: 600; color: var(--accent); margin: 4px 0; }
+@media (max-width: 560px) {
+  #tr-canvas, #te-canvas { height: 140px; max-height: 26dvh; }
+}
+@media (max-height: 700px) {
+  #tr-canvas, #te-canvas { height: 120px; max-height: 24dvh; }
+}
+
+/* ------------------------------------------- push-update banner (R28.1) --- */
+/* Dismissible "update available" toast — fixed so it never moves any layout.
+   Injected by checkForUpdate() in app.js; hidden until a newer remote VERSION
+   is actually seen, so offline / unset URL = never shown. */
+#update-banner {
+  position: fixed; top: 56px; right: 12px; z-index: 95;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--panel2); border: 1px solid var(--accent);
+  border-radius: 12px; padding: 10px 12px;
+  font-size: 13px; color: var(--ink);
+  box-shadow: 0 12px 36px rgba(0,0,0,.5), 0 0 14px var(--accent-glow);
+  max-width: min(92vw, 420px);
+}
+#update-banner b { color: var(--accent); }
+#update-banner .chip { padding: 5px 10px; font-size: 12px; }
+/*BLOCK-REMOVED-FOR-BASELINE*/

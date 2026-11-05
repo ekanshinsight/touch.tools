@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1120">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Touch Tools 2.15</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css?v=R30">
+</head>
+<body>
+
+  <!-- R13.35: theme picker popup (fixed, layout-neutral) -->
+  <div id="theme-popup" class="hidden">
+    <button class="tsw" data-theme-sw="blue"><span class="dot" style="background:#22d3ee"></span><span class="nm">Blue</span></button>
+    <button class="tsw" data-theme-sw="black"><span class="dot" style="background:#8b9dc3"></span><span class="nm">Black</span></button>
+    <button class="tsw" data-theme-sw="purple"><span class="dot" style="background:#c084fc"></span><span class="nm">Purple</span></button>
+    <button class="tsw" data-theme-sw="yellow"><span class="dot" style="background:#fbbf24"></span><span class="nm">Yellow</span></button>
+  </div>
+<!-- R13: PC screen stream — a 16:9 strip pinned to the very top, PORTRAIT
+       only (landscape keeps the full screen for the controls). Off by default;
+       the 🖥 button collapses it to zero height. ⛶ hides the browser tabs
+       (Fullscreen API); ⚙ cycles Low / Med / High quality for weak Wi-Fi. -->
+  <section id="streambar" class="off">
+    <div id="stream-toolbar">
+      <button id="stream-toggle" class="chip" title="Show / hide the PC screen">🖥 Show</button>
+      <!-- R28: TRAIN (record samples) + TEST (verify a saved gesture) — beside 🖥 Show -->
+      <button id="btn-train" class="chip" title="Train a new gesture — draw a shape as many times as you like (3 minimum), give it a job">✋ Train</button>
+      <button id="btn-test" class="chip" title="Test a gesture — draw once and see if a saved gesture matches and what it would do">🧪 Test</button>
+      <button id="stream-full" class="chip" title="Fullscreen — hide the browser tabs">⛶</button>
+      <button id="stream-zoom-reset" class="chip hidden" title="Reset zoom to fit">⤾ 1×</button>
+      <button id="stream-qual" class="chip" title="Quality — low is fastest (weak Wi-Fi), high is clearest">⚙ Med</button>
+      <span id="stream-tip">PC screen</span>
+    </div>
+    <div id="stream-stage">
+      <img id="stream-img" alt="PC screen" draggable="false">
+    </div>
+  </section>
+
+  <!-- R13.42k: stream splitter — stacked-mobile + stream-on only (see the CSS
+       gate). In-flow flex child with a marginal gap under the screen, NEVER
+       inside the stage (it would overlap the display and steal pinch/pan). -->
+  <div id="streamsplit" title="Drag to resize the PC screen — double-tap to reset"><span></span></div>
+
+  <header id="topbar">
+    <div id="brand">🎛 <b>Touch Tools</b><span id="ver">2.15</span></div>
+    <div id="conn">
+      <span id="dot" class="dot warn"></span>
+      <span id="status">Connecting…</span>
+      <span id="latency"></span>
+    </div>
+    <button id="btn-release" class="chip" title="Let go of every key &amp; button on the PC">Release all</button>
+    <button id="btn-customize" class="chip" title="Customize gestures, buttons &amp; save profiles">⚙ Customize</button>
+    <span id="linkmode" class="linkmode" title="Connection link — Wi‑Fi, or Bluetooth (tablet: Settings → Tethering → Bluetooth tethering, then on the PC join its Personal Area Network). Independent links: switching never mixes them.">
+      <button id="lm-wifi" class="lmbtn on">Wi‑Fi</button>
+      <button id="lm-bt" class="lmbtn">BT</button>
+    </span>
+    <span id="verTop" title="Version 2.15">v2.15</span>
+    
+    <button id="theme-btn" class="chip" title="Color theme">🎨</button>
+    <button id="btn-help" class="chip" title="Show the guided tour">?</button>
+  </header>
+
+  <main id="layout">
+    <!-- LEFT half: tabbed, configurable button banks -->
+    <section id="bank">
+      <div id="bank-title">Custom buttons</div>
+      <div id="bank-top">
+        <input id="bank-search" class="searchbox" type="search"
+               placeholder="🔍 search buttons…"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button id="bank-pinmode" class="searchmode" title="Favorite mode — tap to arm, then tap tiles to star/unstar">⭐</button>
+        <button id="bank-editmode" class="searchmode" title="Edit mode — tap to arm, then tap tiles to edit keywords">✎</button>
+      </div>
+      <!-- R13.46: ⭐ favorites strip — directly below the search bar, above
+           the tabs. Hidden when empty. -->
+      <div id="bank-favs" class="favstrip" aria-label="Favorite buttons"></div>
+      <div id="bank-tabs"></div>
+      <div id="bank-body"></div>
+    </section>
+
+    <!-- R13.42i: panel splitter — mobile stacked view only (≤560px). Drag up/down
+         to give the button panel more room or the pad section more room. -->
+    <div id="banksplit" title="Drag to resize panels — double-tap to reset"><span></span></div>
+
+    <!-- RIGHT rail: buttons (scrollable) on top, trackpad pinned at the bottom -->
+    <aside id="rail">
+      <div id="rail-btns">
+        <div id="hotkeys">
+          <!-- R13.26 (bkp2): editing hotkey strip — fills the empty space at the
+               top of the right rail in portrait (the button rows cluster at the
+               bottom). TABBED like the left bank: a horizontally-scrollable row
+               of small category chips on top, below it the keys of the active
+               tab as small square tiles — each tile shows its icon, its label
+               AND the hotkey combo it fires. Unlimited sections can be added.
+               SEARCH: the box above the tabs finds any hotkey by label or
+               keyword (e.g. "space", "find", "chroma") across ALL tabs; the ✎
+               on each tile edits its search keywords. -->
+          <div id="hk-top">
+            <input id="hk-search" class="searchbox" type="search"
+                   placeholder="🔍 search hotkeys…"
+                   autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+            <button id="hk-pinmode" class="searchmode" title="Favorite mode — tap to arm, then tap tiles to star/unstar">⭐</button>
+            <button id="hk-editmode" class="searchmode" title="Edit mode — tap to arm, then tap tiles to edit keywords">✎</button>
+          </div>
+          <!-- R13.46: ⭐ favorites strip — directly below the search bar, above
+               the tabs. Hidden when empty. -->
+          <div id="hk-favs" class="favstrip" aria-label="Favorite hotkeys"></div>
+          <div id="hk-tabs"></div>
+          <div id="hk-body"></div>
+        </div>
+        <div id="modrow">
+          <button class="key mbtn" id="btn-dg" title="Drag — tap to hold the left mouse button down while you move the cursor, tap again to release">DG</button>
+          <button class="key mbtn" id="btn-mclick" title="Middle click">M</button>
+          <button class="key mod" data-key="shift" title="Shift modifier — tap to hold, tap again to release">SHIFT</button>
+          <button class="key mod" id="btn-z" title="Z key — types z">Z</button>
+          <button class="key mbtn" id="btn-rclick" title="Right click — sits at the far right edge">R</button>
+        </div>
+        <div id="majorrow">
+          <button class="key mbtn" title="Esc">ESC</button>
+          <button class="key mbtn" title="Tab">TAB</button>
+          <button class="key mbtn" title="Windows key — Start / win shortcuts">WIN</button>
+          <button class="key mbtn" title="Alt modifier — tap to hold, tap again to release">ALT</button>
+          <button class="key mbtn" title="Left click">L</button>
+        </div>
+        <div id="padbtns">
+          <!-- ▲▼ scroll chips removed in R11 — the pad's top-right scroll dial replaces them -->
+        </div>
+      </div>
+
+      <!-- arrow cluster — a real keyboard's inverted T. R13: rendered from
+           profile.arrows so every key (arrows, DEL, ⌫, SPC, ⏎, V, DG) is
+           remappable in ⚙ Customize → Arrows & holds. -->
+      <div id="arrowrow"></div>
+
+      <!-- R13.42c (mobile ≤349px): one-thumb utility row — sens on the LEFT,
+           ◯ · L · ↕ · R on its RIGHT, above the pad. Hidden at every other
+           width (see the 349px media query); tablet/desktop never see it.
+           The four buttons reuse the pad-row actions (same JS handlers). -->
+      <div id="mutil" aria-hidden="true">
+        <div id="mutil-sens">
+          <button id="m-prec" class="chip-prec" title="Precision mode">◈</button>
+          <input id="m-sens" type="range" min="0" max="150" value="150" aria-label="Sensitivity">
+        </div>
+        <div id="mutil-btns">
+          <button id="m-gesture" class="gesture-dial" title="Gesture mode">◯</button>
+          <button id="m-left" class="pad-click" title="Left click — tap to click">L</button>
+          <button id="m-scroll" class="scroll-dial" title="Scroll mode">↕</button>
+          <button id="m-right" class="pad-click" title="Right click — tap to click">R</button>
+        </div>
+      </div>
+
+      <!-- sensitivity slider — always right above the trackpad; the round ◈
+           before "Sens" toggles precision (fine) mode. R13: the slider reads
+           0–150 (the range was extended above the old 100 cap) and its DEFAULT
+           is the MAX — out of the box it sits at 150% (5×) so the cursor is
+           fast by default; drag down to slow it. -->
+      <div id="senswrap">
+        <button id="prec" class="chip-prec" title="Precision mode — slow the cursor right down for fine, detailed adjustments">◈</button>
+        <label for="sens">Sens</label>
+        <input id="sens" type="range" min="0" max="150" value="150">
+        <span id="sens-val">150%</span>
+        <!-- R27: Zoom slider — same control family as Sens (same row, same
+             styling), controls how much zoom one pinch step produces. -->
+        <label for="zoom-sens" id="zoom-sens-lab">Zoom</label>
+        <input id="zoom-sens" type="range" min="0" max="200" value="100" aria-label="Zoom sensitivity">
+        <span id="zoom-sens-val">100%</span>
+      </div>
+
+      <!-- HOLD buttons FLANK the trackpad (restored R12 arrangement): a 44px
+           column on the pad's left in landscape, on its RIGHT edge in portrait,
+           each button the exact height of the pad (L · M · R portrait, L · R
+           landscape — M is AUTOSCROLL in portrait: tap it, move up/down on the
+           pad, and it keeps scrolling on its own until you tap M / the pad
+           again). The column renders from profile.holds (⚙ customizable). -->
+      <div id="pad-area">
+        <div id="hold-col"></div>
+        <div id="pad-wrap">
+          <div id="trackpad" tabindex="-1">
+            <div id="pad-clickrow">
+              <!-- R13.34: the gesture-mode ◯ dial leads the top row (left of L),
+                   so it sits beside the left-click at the pad's upper edge. -->
+              <button id="gesture-dial" class="gesture-dial"
+                      title="Gesture mode (R13.7) — tap to toggle; while on, draw shapes on the pad and they fire on lift WITHOUT moving the cursor (O = circle · V = Vibe · n = Notepad), so nothing in your app gets hovered/triggered. Tap again to move again">◯</button>
+              <button id="btn-pad-left" class="pad-click" title="Left click — tap to click">L</button>
+              <button id="scroll-dial" class="scroll-dial"
+                      title="Scroll mode — tap to toggle; while on, dragging anywhere on the pad scrolls (like a mouse wheel), tap again to move again">↕</button>
+              <button id="btn-pad-right" class="pad-click" title="Right click — tap to click">R</button>
+            </div>
+            <!-- R13.26 (bkp2): the SAME L · ↕ · R row MIRRORED at the pad's BOTTOM
+                 edge, so either edge of the pad is comfortably reachable. Identical
+                 buttons, identical actions (left click / scroll toggle / right click). -->
+            <div id="pad-clickrow-b">
+              <button id="btn-pad-left-b" class="pad-click" title="Left click — tap to click">L</button>
+              <button id="scroll-dial-b" class="scroll-dial"
+                      title="Scroll mode — tap to toggle; while on, dragging anywhere on the pad scrolls (like a mouse wheel), tap again to move again">↕</button>
+              <button id="btn-pad-right-b" class="pad-click" title="Right click — tap to click">R</button>
+            </div>
+            <div id="tp-hint"></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- R13.43: search overlay — floating results panel (see renderSearchOverlay
+       in app.js). Body-level so shrunken panels can never clip it; hidden
+       unless a search query is active. -->
+  <div id="search-scrim"></div>
+  <div id="search-overlay" role="listbox" aria-label="Search results">
+    <div class="so-head"><span id="so-count"></span><button id="so-clear" aria-label="Clear search">✕</button></div>
+    <div class="so-list" id="so-list"></div>
+  </div>
+
+  <!-- very bottom: type on the PC using your own Android keyboard -->
+  <section id="typebar">
+    <input id="typeInput" placeholder="Tap here → your Android keyboard types on the PC"
+           autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send">
+    <button class="chip" id="typeLive" title="Live = types instantly · Send = compose then press Send">⌨ Live</button>
+    <button class="chip primary" id="typeSend" title="Type everything in the box on the PC">Send</button>
+    <label id="enterLbl" for="typeEnter" title="Add an Enter after Send">⏎<input type="checkbox" id="typeEnter" checked></label>
+    <button class="chip" id="typeClear" title="Clear the box">✕</button>
+  </section>
+
+  <div id="customize-modal" class="modal hidden">
+    <div class="modal-box czw">
+      <div class="cz-head">
+        <h3>⚙ Customize</h3>
+        <span id="cz-profile-name" class="muted"></span>
+      </div>
+      <div class="cz-tabs">
+        <button class="cztab" data-tab="gestures">Gestures</button>
+        <button class="cztab" data-tab="rail">Rail buttons</button>
+        <button class="cztab" data-tab="arrows">Arrows &amp; holds</button>
+        <button class="cztab" data-tab="bank">Button bank</button>
+        <button class="cztab" data-tab="profiles">Profiles</button>
+      </div>
+      <div id="cz-gestures" class="cz-pane"></div>
+      <div id="cz-rail" class="cz-pane hidden"></div>
+      <div id="cz-arrows" class="cz-pane hidden"></div>
+      <div id="cz-bank" class="cz-pane hidden"></div>
+      <div id="cz-profiles" class="cz-pane hidden"></div>
+      <div class="cz-foot">
+        <button class="chip primary" id="czClose">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pin-modal" class="modal hidden">
+    <div class="modal-box">
+      <h3>Enter the PIN</h3>
+      <p class="muted">This PC requires a PIN to control it.</p>
+      <input id="pinInput" type="password" inputmode="numeric" autocomplete="off">
+      <button class="chip primary" id="pinOk">Connect</button>
+    </div>
+  </div>
+
+  <!-- guided tour: spotlights each area one by one, plus a search box that
+       looks up what any button does -->
+  <div id="tour" class="hidden">
+    <div id="tour-spot"></div>
+    <svg id="tour-conn"></svg>
+    <div id="tour-bubble">
+      <input id="tour-search" type="search" placeholder="Search: what does a button do?"
+             autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div id="tour-results" class="hidden"></div>
+      <div id="tour-step">
+        <div id="tour-title"></div>
+        <div id="tour-text"></div>
+      </div>
+      <div id="tour-controls">
+        <span id="tour-progress"></span>
+        <button class="chip" id="tourPrev" title="Previous step">‹</button>
+        <button class="chip primary" id="tourNext">Next ›</button>
+        <button class="chip" id="tourDone" title="Close tour">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- R28: gesture TRAIN panel — friendly, no-explanation-needed wizard:
+       name → draw the shape AS OFTEN AS YOU LIKE (3 minimum, live count, ✓ Done
+       button — 20/50/100 samples all fine) → pick the action → TEST → Save,
+       plus a delete list for already-saved gestures and a 🔬 hand-off to
+       gesture-lab.html (bulk recording + ⚡ Implement). Wired in app.js
+       (setupTrainer / openTrainPanel). Samples persist in profile.gestures
+       (localStorage rc_profiles) — the SAME store as the built-ins. -->
+  <div id="train-modal" class="modal hidden">
+    <div class="modal-box wide">
+      <div class="cz-head">
+        <h3>✋ Train a new gesture</h3>
+        <span class="muted">Draw it as many times as you like — more samples = better accuracy.</span>
+      </div>
+
+      <!-- 1 · name -->
+      <div class="cz-row">
+        <span class="cz-label">1 · Name it</span>
+        <input id="tr-name" class="cz-input" maxlength="40"
+               placeholder="e.g. Open Spotify" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+
+      <!-- 2 · draw ×N (3 minimum, live count, Done whenever YOU choose) -->
+      <div class="cz-row" style="flex-direction:column;align-items:stretch;">
+        <span class="cz-label" style="flex:none;margin-bottom:4px;">2 · Draw it — 3 minimum, 20 / 50 / 100 all welcome</span>
+        <div id="tr-progress" class="tr-progress">Draw your shape — 0 of 3 minimum</div>
+        <canvas id="tr-canvas" width="640" height="220"></canvas>
+        <div class="cz-foot-btns">
+          <button id="tr-done" class="chip primary" title="Stop recording now — you have enough samples">✓ Done</button>
+          <button id="tr-redo" class="chip" title="Throw away the last drawing">↺ Redo last</button>
+          <button id="tr-clear" class="chip" title="Throw away all drawings and start over">Clear all</button>
+          <button id="tr-lab" class="chip" title="Open the Gesture Data-Lab — bulk record with auto-tagging, then tap ⚡ Implement to make it live">🔬 Gesture Lab</button>
+        </div>
+      </div>
+
+      <!-- 3 · action -->
+      <div class="cz-row" style="flex-direction:column;align-items:stretch;">
+        <span class="cz-label" style="flex:none;">3 · What should it do?</span>
+        <div id="tr-action" class="tr-action"></div>
+      </div>
+
+      <!-- 4 · test -->
+      <div class="cz-row" style="flex-direction:column;align-items:stretch;">
+        <span class="cz-label" style="flex:none;">4 · Test it (optional)</span>
+        <div class="cz-foot-btns">
+          <button id="tr-test" class="chip" title="Draw once more in the box above and see if it is recognised">✓ Test my drawing</button>
+          <span id="tr-testout" class="tr-testout">Record at least 1 drawing first.</span>
+        </div>
+      </div>
+
+      <!-- saved gestures + delete -->
+      <div class="cz-row" style="flex-direction:column;align-items:stretch;">
+        <span class="cz-label" style="flex:none;">Your saved gestures</span>
+        <div id="tr-list" class="tr-list"><span class="muted">None yet.</span></div>
+      </div>
+
+      <div id="tr-msg" class="tr-msg"></div>
+
+      <div class="cz-foot">
+        <button id="tr-cancel" class="chip">Cancel</button>
+        <button id="tr-save" class="chip primary">💾 Save gesture</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- R28.1: gesture TEST panel — SEPARATE from Train. Draw ONCE, get a clear
+       verdict: built-in O/V/n first, then the nearest saved custom gesture,
+       always with the distance and what it would do. Nothing is recorded.
+       Wired by setupTester in app.js (🧪 chip beside ✋ Train). -->
+  <div id="test-modal" class="modal hidden">
+    <div class="modal-box wide">
+      <div class="cz-head">
+        <h3>🧪 Test a gesture</h3>
+        <span class="muted">Draw it once — does it match a saved gesture?</span>
+      </div>
+      <div class="cz-row" style="flex-direction:column;align-items:stretch;">
+        <div id="te-progress" class="tr-progress">Draw the shape once in the box</div>
+        <canvas id="te-canvas" width="640" height="220"></canvas>
+        <div class="cz-foot-btns">
+          <button id="te-clear" class="chip" title="Clear the test drawing">↺ Clear</button>
+        </div>
+      </div>
+      <div id="te-out" class="tr-testout">Draw the shape once — the verdict appears here.</div>
+      <div class="cz-foot">
+        <button id="te-close" class="chip primary">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="action-picker.js?v=R33"></script>
+  <script src="app.js?v=R34"></script>
+</body>
+</html>
